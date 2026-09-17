@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "timing.h"
+#include "runtime.h"
 
 typedef struct {
     uint64_t *counter;
@@ -24,6 +25,11 @@ static void *increment_counter(void *argument) {
          operation < context->operations;
          ++operation) {
         uint64_t value;
+
+        if (runtime_cancelled()) {
+            context->failed = true;
+            break;
+        }
 
         if (pthread_mutex_lock(context->mutex) != 0) {
             context->failed = true;
@@ -73,6 +79,10 @@ bool sync_run_threads_mutex(
     if (config->operations_per_worker > UINT64_MAX / config->workers) {
         return false;
     }
+    if (!runtime_begin(config->workers)) {
+        return false;
+    }
+
     expected = (uint64_t) config->workers * config->operations_per_worker;
 
     if (!allocation_size_is_valid(config->workers, sizeof(*threads)) ||
@@ -110,6 +120,7 @@ bool sync_run_threads_mutex(
                     increment_counter,
                     &contexts[worker]
                 ) != 0) {
+                runtime_cancel();
                 succeeded = false;
                 break;
             }
@@ -150,5 +161,5 @@ bool sync_run_threads_mutex(
 
     free(contexts);
     free(threads);
-    return succeeded;
+    return succeeded && !runtime_cancelled();
 }

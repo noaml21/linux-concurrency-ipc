@@ -10,8 +10,11 @@ Branch: `v3/reliable-ipc-lab`. Never merge or release.
 0. Baseline: C `make test app release` passed. Initial Python run failed only
    because Textual was absent. Installed pinned requirements in local `.venv`;
    all 34 Python/UI tests passed; legacy shm-ring CLI passed. GitHub authenticated push permission verified.
-1. Reliability: pending. Extend existing engine with scoped lifecycle tracking,
-   cooperative deadlines and bounded escalation; fault injection only in test build.
+1. Reliability: VERIFIED. Scoped lifecycle tracking, cooperative deadlines,
+   bounded escalation and test-only fault hooks implemented. `make test app release
+   fault-test` passed (12 C binaries, 4 parameterized fault tests); all 10 unchanged
+   V2 execution/history tests passed; legacy CLI covered; diff scope checked.
+   Design/audit and exact SIGKILL/OS scheduling limitations: V3_DESIGN.md.
 2. Measurement/history: pending. Bounded seeded matrices, warmups, provenance,
    per-attempt durable checkpoints, explicit V2 history compatibility.
 3. Optimization: pending. Measure baseline, add bounded batched ring, compare.

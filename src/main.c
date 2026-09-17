@@ -9,11 +9,12 @@
 
 #include "ipc.h"
 #include "sync.h"
+#include "runtime.h"
 
 static void print_usage(FILE *stream, const char *program_name) {
     fprintf(
         stream,
-        "Usage:\n"
+        "Usage (optional suffix: --deadline-ms 1..120000; default 30000):\n"
         "  %s --help\n"
         "  %s sync process-unsafe <workers> <operations_per_worker>\n"
         "  %s sync threads-mutex <workers> <operations_per_worker>\n"
@@ -111,7 +112,7 @@ static int run_sync_command(
     }
 
     if (!succeeded) {
-        fprintf(stderr, "error: synchronization experiment failed\n");
+        fprintf(stderr, "error: synchronization experiment failed: %s\n", runtime_reason());
         return 1;
     }
 
@@ -212,7 +213,7 @@ static int run_ipc_command(
     }
 
     if (!succeeded) {
-        fprintf(stderr, "error: IPC experiment failed\n");
+        fprintf(stderr, "error: IPC experiment failed: %s\n", runtime_reason());
         return 1;
     }
 
@@ -224,10 +225,21 @@ static int run_ipc_command(
         capacity,
         &result
     );
-    return 0;
+    return result.validation.pass ? 0 : 1;
 }
 
 int main(int argc, char **argv) {
+    uint32_t deadline = 30000;
+    if (argc >= 3 && strcmp(argv[argc - 2], "--deadline-ms") == 0) {
+        if (!parse_uint32_positive(argv[argc - 1], &deadline)) {
+            return 2;
+        }
+        argc -= 2;
+    }
+    if (!runtime_configure(deadline)) {
+        fprintf(stderr, "error: deadline must be 1..120000 milliseconds\n");
+        return 2;
+    }
     if (argc == 2 && strcmp(argv[1], "--help") == 0) {
         print_usage(stdout, argv[0]);
         return 0;

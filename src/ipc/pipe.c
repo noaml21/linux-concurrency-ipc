@@ -12,6 +12,7 @@
 #include "io.h"
 #include "record.h"
 #include "timing.h"
+#include "runtime.h"
 
 _Static_assert(
     sizeof(record_t) <= PIPE_BUF,
@@ -47,6 +48,10 @@ bool ipc_run_pipe(
     if (config->records_per_producer > UINT64_MAX / config->producers) {
         return false;
     }
+    if (!runtime_begin(config->producers)) {
+        return false;
+    }
+
     if (!validator_init(
             &validator,
             config->producers,
@@ -68,7 +73,7 @@ bool ipc_run_pipe(
     }
 
     for (uint32_t producer = 0; producer < config->producers; ++producer) {
-        pid_t child = fork();
+        pid_t child = runtime_fork();
 
         if (child < 0) {
             succeeded = false;
@@ -81,6 +86,7 @@ bool ipc_run_pipe(
             for (uint64_t sequence = 0;
                  sequence < config->records_per_producer;
                  ++sequence) {
+                runtime_child_fault();
                 record_t produced = record_make(producer, sequence);
 
                 if (!write_all(pipe_fds[1], &produced, sizeof(produced))) {
@@ -100,7 +106,8 @@ bool ipc_run_pipe(
         succeeded = false;
     }
 
-    for (;;) {
+    while (succeeded && !runtime_cancelled()) {
+        runtime_consumer_delay();
         io_read_result_t read_result = read_full_or_eof(
             pipe_fds[0],
             &record,
@@ -127,7 +134,7 @@ bool ipc_run_pipe(
         pid_t waited;
 
         do {
-            waited = waitpid(-1, &status, 0);
+            waited = runtime_wait(&status, 0);
         } while (waited < 0 && errno == EINTR);
 
         if (waited < 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
@@ -150,5 +157,5 @@ bool ipc_run_pipe(
     }
 
     validator_destroy(&validator);
-    return succeeded;
+    return succeeded && !runtime_cancelled();
 }

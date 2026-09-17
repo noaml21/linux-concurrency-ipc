@@ -3,6 +3,7 @@
 #include "ipc.h"
 
 #include <errno.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
@@ -15,6 +16,7 @@
 
 #include "record.h"
 #include "timing.h"
+#include "runtime.h"
 
 enum {
     SEMAPHORE_EMPTY = 0,
@@ -59,7 +61,7 @@ static bool semaphore_operation(
     int status;
 
     do {
-        status = semop(semaphore_id, &action, 1);
+        status = runtime_semop(semaphore_id, &action, 1);
     } while (status < 0 && errno == EINTR);
 
     return status == 0;
@@ -68,7 +70,7 @@ static bool semaphore_operation(
 static semaphore_wait_result_t wait_for_full(int semaphore_id) {
     struct sembuf action = {SEMAPHORE_FULL, -1, 0};
 
-    for (;;) {
+    while (!runtime_cancelled()) {
         const struct timespec timeout = {0, 100000000};
 
         if (semtimedop(semaphore_id, &action, 1, &timeout) == 0) {
@@ -83,6 +85,7 @@ static semaphore_wait_result_t wait_for_full(int semaphore_id) {
         }
         return SEMAPHORE_WAIT_ERROR;
     }
+    return SEMAPHORE_WAIT_ERROR;
 }
 
 static bool send_message(
@@ -94,6 +97,7 @@ static bool send_message(
         return false;
     }
 
+    runtime_child_fault();
     *shared_message = *message;
 
     return semaphore_operation(semaphore_id, SEMAPHORE_FULL, 1);
@@ -113,7 +117,7 @@ static bool reap_exited_children(
         pid_t waited;
 
         do {
-            waited = waitpid(-1, &status, WNOHANG);
+            waited = runtime_wait(&status, WNOHANG);
         } while (waited < 0 && errno == EINTR);
 
         if (waited < 0) {
@@ -143,7 +147,7 @@ static bool reap_remaining_children(
         pid_t waited;
 
         do {
-            waited = waitpid(-1, &status, 0);
+            waited = runtime_wait(&status, 0);
         } while (waited < 0 && errno == EINTR);
 
         if (waited < 0) {
@@ -156,7 +160,7 @@ static bool reap_remaining_children(
         }
     }
 
-    return succeeded;
+    return succeeded && !runtime_cancelled();
 }
 
 bool ipc_run_shm_mailbox(
@@ -196,6 +200,10 @@ bool ipc_run_shm_mailbox(
         return false;
     }
 
+    if (!runtime_begin(config->producers)) {
+        return false;
+    }
+
     if (!validator_init(
             &validator,
             config->producers,
@@ -209,6 +217,9 @@ bool ipc_run_shm_mailbox(
         sizeof(*shared_message),
         IPC_CREAT | 0600
     );
+#ifdef IPC_TESTING
+    fprintf(stderr, "owned_shm=%d\n", shared_memory_id);
+#endif
     if (shared_memory_id < 0) {
         validator_destroy(&validator);
         return false;
@@ -226,6 +237,9 @@ bool ipc_run_shm_mailbox(
         SEMAPHORE_COUNT,
         IPC_CREAT | 0600
     );
+#ifdef IPC_TESTING
+    fprintf(stderr, "owned_sem=%d\n", semaphore_id);
+#endif
     if (semaphore_id < 0) {
         shmdt(shared_message);
         shmctl(shared_memory_id, IPC_RMID, NULL);
@@ -276,7 +290,7 @@ bool ipc_run_shm_mailbox(
 
     if (succeeded) {
         for (uint32_t producer = 0; producer < config->producers; ++producer) {
-            pid_t child = fork();
+            pid_t child = runtime_fork();
 
             if (child < 0) {
                 succeeded = false;
@@ -320,6 +334,7 @@ bool ipc_run_shm_mailbox(
     }
 
     while (succeeded && done_count < config->producers) {
+        runtime_consumer_delay();
         semaphore_wait_result_t wait_result = wait_for_full(semaphore_id);
 
         if (wait_result == SEMAPHORE_WAIT_TIMEOUT) {
@@ -387,6 +402,10 @@ bool ipc_run_shm_mailbox(
         elapsed_seconds = timing_elapsed_seconds(&start, &end);
     }
 
+    if (!succeeded) {
+        runtime_cancel();
+    }
+
     if (!succeeded && semaphore_id >= 0) {
         if (semctl(semaphore_id, 0, IPC_RMID) == 0) {
             semaphore_id = -1;
@@ -418,5 +437,5 @@ bool ipc_run_shm_mailbox(
 
     free(producer_done);
     validator_destroy(&validator);
-    return succeeded;
+    return succeeded && !runtime_cancelled();
 }

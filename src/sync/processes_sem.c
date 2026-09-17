@@ -3,6 +3,7 @@
 #include "sync.h"
 
 #include <errno.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <sys/ipc.h>
 #include <sys/mman.h>
@@ -12,6 +13,7 @@
 #include <unistd.h>
 
 #include "timing.h"
+#include "runtime.h"
 
 union semun {
     int val;
@@ -25,7 +27,7 @@ static bool semaphore_operation(int semaphore_id, short operation) {
     int status;
 
     do {
-        status = semop(semaphore_id, &action, 1);
+        status = runtime_semop(semaphore_id, &action, 1);
     } while (status < 0 && errno == EINTR);
 
     return status == 0;
@@ -71,6 +73,10 @@ bool sync_run_process_sem(
     if (config->operations_per_worker > UINT64_MAX / config->workers) {
         return false;
     }
+    if (!runtime_begin(config->workers)) {
+        return false;
+    }
+
     expected = (uint64_t) config->workers * config->operations_per_worker;
 
     counter = mmap(
@@ -87,6 +93,9 @@ bool sync_run_process_sem(
     *counter = 0;
 
     semaphore_id = semget(IPC_PRIVATE, 1, IPC_CREAT | 0600);
+#ifdef IPC_TESTING
+    fprintf(stderr, "owned_sem=%d\n", semaphore_id);
+#endif
     if (semaphore_id < 0) {
         munmap((void *) counter, sizeof(*counter));
         return false;
@@ -105,7 +114,7 @@ bool sync_run_process_sem(
 
     if (succeeded) {
         for (uint32_t worker = 0; worker < config->workers; ++worker) {
-            pid_t child = fork();
+            pid_t child = runtime_fork();
 
             if (child < 0) {
                 succeeded = false;
@@ -122,6 +131,7 @@ bool sync_run_process_sem(
                         _exit(1);
                     }
 
+                    runtime_child_fault();
                     value = *counter;
                     *counter = value + 1;
 
@@ -141,7 +151,7 @@ bool sync_run_process_sem(
         pid_t waited;
 
         do {
-            waited = waitpid(-1, &status, 0);
+            waited = runtime_wait(&status, 0);
         } while (waited < 0 && errno == EINTR);
 
         if (waited < 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
@@ -179,5 +189,5 @@ bool sync_run_process_sem(
         }
     }
 
-    return succeeded;
+    return succeeded && !runtime_cancelled();
 }
