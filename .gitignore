@@ -14,3 +14,7 @@ __pycache__/
 # OS artifacts
 .DS_Store
 Thumbs.db
+
+# Interactive lab environment and local experiment output
+.venv/
+results/lab/

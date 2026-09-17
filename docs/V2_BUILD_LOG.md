@@ -25,3 +25,18 @@
   capacity 8) passed with all correctness counters zero.
 - Reviewed staged scope and whitespace: only the new Python core/tests and this
   log changed; the C engine and V1 scripts/data remain untouched.
+
+## Milestone 2 — execution, history, comparison and export
+
+- Added sequential asyncio subprocess execution, started/completed events, safe
+  boundary cancellation, and draining of the active engine on worker cancellation.
+- Added original-output run records, UTC/system/engine-digest metadata, validated
+  versioned JSON with atomic writes, compatible-run comparisons, and V2 CSVs.
+- Ignored `.venv/` and `results/lab/`; existing V1 CSVs remain tracked and untouched.
+- `python3 -m unittest discover -s tests/lab -v`: all 19 tests passed, including
+  real executions of all seven mechanisms, exact raw-output/parsed-value checks,
+  failure records, cancellation, serialization, comparisons, and export.
+- `make test`: all 11 C tests passed. The threads-mutex CLI (2 × 100) returned an
+  exact observed count and zero lost updates.
+- Reviewed the diff: only new lab modules/tests, ignore rules, and this log;
+  no changes to the C engine, C tests, V1 scripts, or baseline CSVs.
