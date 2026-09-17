@@ -25,7 +25,11 @@ def serialize(run: Run) -> str:
 def deserialize(text: str) -> Run:
     try:
         data = json.loads(text)
-        if type(data) is not dict or data.pop("schema_version") != SCHEMA_VERSION:
+        required = {"schema_version", "config", "system", "run_id", "started", "finished", "cancelled", "attempts"}
+        if type(data) is not dict or set(data) != required:
+            raise ValueError("Missing or unexpected history fields")
+        version = data.pop("schema_version")
+        if type(version) is not int or version != SCHEMA_VERSION:
             raise ValueError("Unsupported history schema")
         raw_config = data.pop("config")
         raw_config["modes"] = tuple(raw_config["modes"])
@@ -49,6 +53,8 @@ def deserialize(text: str) -> Run:
             raise ValueError("Missing or invalid system/engine metadata")
         schedule = [(case, rep) for case in config.cases() for rep in range(1, config.repetitions + 1)]
         for index, raw in enumerate(raw_attempts):
+            if set(raw) != {"case", "repetition", "stdout", "stderr", "returncode", "launch_error"}:
+                raise ValueError("Missing or unexpected execution fields")
             attempt = Attempt(case=Case(**raw.pop("case")), **raw)
             if type(attempt.repetition) is not int or (attempt.case, attempt.repetition) != schedule[index]:
                 raise ValueError("History executions do not match the configured schedule")

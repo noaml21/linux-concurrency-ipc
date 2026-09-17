@@ -35,6 +35,10 @@ class StorageTests(unittest.TestCase):
     def test_reject_invalid_history(self):
         for mutate in (
             lambda d: d.update(schema_version=99),
+            lambda d: d.update(schema_version=True),
+            lambda d: d.pop("run_id"),
+            lambda d: d.pop("started"),
+            lambda d: d["attempts"][0].pop("stdout"),
             lambda d: d.update(run_id="../../elsewhere"),
             lambda d: d["config"].update(workers=10000),
             lambda d: d["attempts"][0].update(repetition=2),
@@ -161,3 +165,10 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
         run = await run_experiment(Config(), BINARY, cancel)
         self.assertEqual(run.attempts, [])
         self.assertEqual(run.status, "CANCELLED")
+
+    async def test_inner_cancellation_does_not_spin(self):
+        async def cancelled(*args):
+            raise asyncio.CancelledError
+        with patch("ipc_lab.runner.execute", cancelled):
+            with self.assertRaises(asyncio.CancelledError):
+                await run_experiment(Config(), BINARY, asyncio.Event())

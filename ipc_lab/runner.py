@@ -54,6 +54,10 @@ async def run_experiment(
                     break
                 except asyncio.CancelledError:
                     cancel.set()
+                    if task.cancelled():
+                        # Event-loop shutdown may also cancel the inner task;
+                        # never spin waiting for an already-cancelled task.
+                        raise
             run.attempts.append(attempt)
             notify(Progress("completed", run, case, repetition))
         if cancel.is_set():

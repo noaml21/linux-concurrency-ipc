@@ -140,3 +140,25 @@ class UITests(unittest.IsolatedAsyncioTestCase):
             await pilot.press("down")
             await pilot.click("#compare")
             self.assertEqual(self.app.query_one("#comparison", DataTable).row_count, 4)
+
+    async def test_quit_waits_for_engine_and_saves(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+
+        async def delayed(binary, case, repetition):
+            entered.set()
+            await release.wait()
+            return await execute(binary, case, repetition)
+
+        async with self.app.run_test() as pilot:
+            self.app.query_one("#amount", Input).value = "5"
+            with patch("ipc_lab.runner.execute", delayed):
+                await pilot.click("#run")
+                await entered.wait()
+                await pilot.press("ctrl+q")
+                self.assertTrue(self.app.quit_pending)
+                self.assertTrue(self.app.running)
+                release.set()
+                await self.app.workers.wait_for_complete()
+            self.assertFalse(self.app.running)
+            self.assertEqual(self.app.current.status, "CANCELLED")
+            self.assertEqual(len(list(Path(self.temporary.name).glob("*.json"))), 1)

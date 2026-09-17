@@ -68,7 +68,7 @@ class LabApp(App):
                             yield Label("Mechanisms")
                             yield SelectionList(*[(mode, mode, True) for mode in MODES["ipc"]], id="mechanisms")
                     with Horizontal(id="parameters"):
-                        for label, value, ident in (("Workers / producers", "2", "workers"),
+                        for label, value, ident in (("Workers / prod.", "2", "workers"),
                                                     ("Items per worker", "2000", "amount"),
                                                     ("Repetitions", "3", "repetitions"),
                                                     ("Ring capacity", "64", "capacity")):
@@ -193,6 +193,7 @@ class LabApp(App):
                 path = await asyncio.to_thread(self.history.save, run)
                 message = f"Saved {path}"
             except (OSError, ValueError) as error:
+                self.quit_pending = False
                 message = f"History save failed: {error}. Results retained; use Save run again."
             self.query_one("#result-message", Static).update(message)
             self.query_one("#live-current", Static).update(f"{run.status} · {len(run.attempts)}/{config.total} executions completed")

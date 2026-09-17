@@ -58,3 +58,35 @@
 - `make test`: all 11 C tests passed. FIFO CLI (2 × 100) passed validation.
   `./scripts/explore --check` passed. Reviewed the staged scope and whitespace;
   C source, C tests, V1 scripts and recorded CSVs remain unchanged.
+
+## Milestone 4 — final review, documentation and release verification
+
+- Documented installation, interaction, architecture, history/CSV schema,
+  methodology, workload limits, and cancellation/crash limitations in README;
+  added a reproducible demo and actual Textual SVG screen captures.
+- Final review tightened required history identity/execution fields and schema
+  types, prevented a cancelled-inner-task shutdown loop, retained unsaved results
+  on quit/save failure, and added graceful-quit/shutdown regression coverage.
+- Final required gates, all passed:
+  - `make clean`, `make test` (all 11 C test executables), `make release`.
+  - `python3 scripts/stress.py` (all 11 stress cases).
+  - `.venv/bin/python -m unittest discover -s tests/lab -v` (34 tests, including
+    all seven real modes, sweeps, parsing/raw-value equality, input rejection,
+    cancellation/quit, history/export/compare, and 60×20 UI smoke coverage).
+  - `python3 scripts/benchmark.py --repetitions 1 --output-dir
+    results/lab/v1-verification`: all 11 V1 benchmark cases and both CSVs succeeded.
+  - `./scripts/explore --check`, `sh -n scripts/explore`, and local `pip check`.
+- Real PTY smoke check: launched `./scripts/explore`, pressed Ctrl+R, confirmed
+  the saved run had 12/12 real executions with zero failures, and quit cleanly
+  with Ctrl+Q. Documentation capture separately completed 8/8 real executions.
+- Reviewed the full diff for shell execution, cancellation, schema errors,
+  performance interpretation, dependencies, and scope. The C engine, all C tests,
+  Makefile, V1 scripts and original CSV datasets are byte-for-byte unchanged.
+- Confirmed virtual environment, build output, Python caches and generated local
+  runs/exports are ignored. Only intentional documentation SVGs are tracked.
+- No failing checks remain. Known limits: cancellation drains the current case
+  with no hard timeout, unexpected termination may lose an unfinished run, and
+  descriptive comparisons do not control CPU frequency, affinity or system load.
+- Release handoff: commit this verified milestone, confirm a clean tree, push only
+  `v2/interactive-benchmark-lab`, then open a draft PR to main (CLI authentication
+  verified). Never merge. Publication links are reported in the final response.

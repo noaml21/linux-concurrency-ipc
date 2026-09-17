@@ -15,6 +15,149 @@ The IPC experiments use multiple producer processes and one consumer process to 
 - a capacity-1 System V shared-memory mailbox;
 - a bounded System V shared-memory ring buffer.
 
+## Interactive benchmark lab (V2)
+
+**Linux Concurrency & IPC Lab** adds a Textual terminal interface over the same
+C release executable. Configure experiments, watch real execution progress,
+inspect correctness and throughput, sweep ring capacities, revisit local runs,
+compare compatible experiments, and export summaries. All V1 commands and CSV
+workflows below remain available without installing Textual.
+
+### Setup and launch
+
+The lab requires Linux (including WSL2), GCC, Make, and Python **3.10+** with
+venv/pip support. From the repository root:
+
+```sh
+make release
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-lab.txt
+./scripts/explore --check
+./scripts/explore
+```
+
+The launcher prefers `.venv/bin/python`, otherwise it uses `python3` from PATH.
+It prints setup guidance when Textual or the release binary is missing. It does
+not install dependencies or build binaries automatically. An interactive terminal
+is required; 100×32 or larger is comfortable, 80×24 is supported, and a 60×20
+keyboard smoke test covers smaller terminals. Scroll panels to reveal additional
+controls and details; tables also scroll horizontally.
+
+### Interactive workflow
+
+1. **Configure:** choose IPC or synchronization, then select mechanisms with Space.
+   Set workers/producers, items **per worker/producer**, repetitions, and ring
+   capacity. The default runs the four IPC mechanisms with 2 producers × 2,000
+   records, three times each. Validation explains invalid or excessive workloads.
+2. **Sweep:** enable “Sweep shm-ring capacity” to select the ring and replace its
+   single capacity with `1, 2, 8, 64, 256, 1024`. You can edit the comma-separated
+   capacities (at most eight distinct values). Other selected modes run once per
+   repetition at the same workload, without the capacity dimension.
+3. **Live:** Run or Ctrl+R starts sequential background execution. The app shows
+   the current mechanism/repetition, elapsed wall time, actual completed
+   executions, failures and the last correctness result. Progress advances only
+   when the engine returns; it is not a record-level estimate.
+4. **Results:** select a row to see validation counters, expected and observed
+   counts, accepted-sample sparkline, and the original engine output. The table
+   shows median/min/max throughput and accepted/planned sample count (`n`).
+   Export summary CSV writes a separate V2 CSV under `results/lab/exports/`.
+5. **History:** select a saved run and Open it. To compare, Pin baseline, select
+   a different run, then Compare. Both must be complete without failures, with
+   identical configuration, recorded system metadata, and engine digest.
+
+Tab/Shift+Tab move focus, arrows move through tables and selections, and Space
+changes a checkbox or selected mechanism. Ctrl+X requests cancellation;
+Ctrl+Q (or Ctrl+C) requests a safe quit. The default command palette is also
+available with Ctrl+P.
+
+**Cancellation finishes the current execution and skips all remaining ones.**
+The C engine owns FIFO/System V IPC cleanup and child reaping. Its existing CLI
+has no cooperative mid-execution cancellation protocol, so the lab never kills
+it to simulate immediate cancellation. Quit also waits for cleanup and history
+saving. A genuinely stalled engine can therefore delay cancellation indefinitely;
+there is no hard timeout. The UI remains responsive and labels long executions.
+Force-closing the terminal or killing the app cannot guarantee cleanup or saving.
+
+### Interpretation and limits
+
+- IPC rates are records/sec. Correctness requires every expected record exactly
+  once, no corruption, and no out-of-range records. Counter details and CSV
+  counters are **sums across parsed repetitions**, including incorrect ones.
+- Synchronized counters require observed = expected and zero lost updates.
+  `process-unsafe` is always labeled **RACY**, even if no loss happens in a run.
+  Its reported rate is **attempted operations/sec**, not useful synchronized
+  throughput; it is excluded from the common relative-performance bar scale.
+- Invalid output and nonzero exits are errors. Parsed correctness failures remain
+  visible but are excluded from rate statistics. A cancelled experiment retains
+  completed samples, and unexecuted cases display NOT RUN. A failing case can
+  still have accepted samples; always inspect its state and sample count.
+- Median bars are relative to accepted medians in that run. Sparklines show
+  accepted repetitions in execution order. Min/max describe spread, not a
+  confidence interval. Tiny demo workloads emphasize startup/scheduling overhead.
+- The lab runs cases sequentially, grouped by mechanism/capacity, without warmup,
+  randomization, CPU affinity, or frequency control. System metadata is useful
+  context, not proof of identical hardware/load. Comparisons make no statistical
+  significance or universal performance claims.
+- UI limits: 1–32 workers/producers, 1–100,000 items each, at most 200,000 items
+  per execution, 1–15 repetitions, capacities 1–32,767, at most 90 executions and
+  5,000,000 configured items per experiment. These limits do not change the C CLI.
+
+### Architecture and stored data
+
+```text
+scripts/explore → ipc_lab/__main__.py → app.py + lab.tcss
+                                         ↓
+models.py → runner.py → existing C release CLI → parsing.py
+                 ↓                                  ↓
+             records.py ←────────────────────── analysis.py
+                 ↓                                  ↓
+             storage.py                       presentation.py
+        results/lab/*.json                    Textual dashboard
+        results/lab/exports/*.csv
+```
+
+`models.py` validates immutable configurations and expands cases, allowing future
+sweep dimensions without adding benchmark logic to the UI. `runner.py` constructs
+explicit argument lists and uses `asyncio.create_subprocess_exec` without a shell.
+Only the C engine measures time, performs operations, and validates records.
+`parsing.py` checks its complete key=value contract and workload metadata;
+`analysis.py` computes descriptive statistics. The UI renders results and handles
+interaction; it does not implement IPC or synchronization algorithms.
+
+Each run JSON has `schema_version: 1`, a unique run ID, UTC start/finish timestamps,
+full configuration (including the sweep), cancellation state, OS/kernel/architecture,
+CPU count, Python version, release-engine name and SHA-256, and every attempted
+case with its repetition, stdout, stderr, exit code or launch error. Results are
+reparsed on load; aggregate values are not trusted from disk. The schema and
+schedule are validated, and unreadable files are reported without preventing
+other history from loading. Writes use a temporary sibling file and atomic rename.
+History is saved when a run finishes or is cancelled; unexpected app termination
+before that point can lose that run. Save failures retain results in the app with
+a retry button. Generated history, exports, and `.venv/` are ignored by Git.
+
+To reproduce a saved experiment, use its configuration in Configure and compare
+the recorded engine digest and environment metadata. Preserve the JSON alongside
+its exported CSV: the JSON contains the raw evidence and system metadata. Existing
+`results/benchmark_raw.csv`, `results/benchmark_summary.csv`, and
+`scripts/benchmark.py` are independent of the lab and retain their V1 format.
+
+### Lab tests and demo
+
+```sh
+make test
+make release
+.venv/bin/python -m unittest discover -s tests/lab -v
+python3 scripts/stress.py
+```
+
+The Python suite uses standard-library unittest and Textual Pilot. It includes
+parser/validation/statistics/command/history tests, real tiny CLI executions of
+all seven mechanisms, and UI workflows for IPC, sync, capacity sweep, cancellation,
+history, comparison, export, storage errors, and smaller terminals. Build the
+release binary first; real integration tests are required, not silently skipped.
+See [the reproducible demo](docs/V2_DEMO.md), [implementation plan](docs/V2_PLAN.md),
+and [milestone verification log](docs/V2_BUILD_LOG.md).
+
 ## Key technical ideas
 
 Each producer emits records identified by a producer ID and sequence number. `record_make()` derives a deterministic integrity value from those fields, allowing the consumer to detect data corruption without storing a reference copy of every record.
