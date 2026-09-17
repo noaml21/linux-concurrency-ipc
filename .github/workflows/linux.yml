@@ -1,0 +1,65 @@
+name: Linux correctness
+on:
+  push:
+    branches: [v3/reliable-ipc-lab]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: linux-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compilers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Strict build and C tests
+        run: make test app release CC=${{ matrix.cc }}
+      - name: Bounded fault matrix and owned-resource cleanup
+        run: make fault-test CC=${{ matrix.cc }}
+      - name: Legacy and batch CLI smoke
+        run: |
+          ./build/linux-concurrency-ipc-release ipc pipe 2 100
+          ./build/linux-concurrency-ipc-release ipc shm-ring-batch 2 31 2 2
+      - name: Stress correctness (no performance thresholds)
+        run: python3 scripts/stress.py
+  sanitizers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: AddressSanitizer and UndefinedBehaviorSanitizer, safe modes
+        run: make sanitizer-test CC=${{ matrix.cc }}
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -r requirements-lab.txt
+      - run: make release
+      - name: Core, real engine integration, recovery and Textual Pilot
+        run: .venv/bin/python -m unittest discover -s tests/lab -v
+      - name: Launcher and bounded reproducible experiment
+        run: |
+          ./scripts/explore --check
+          .venv/bin/python -m ipc_lab.experiment --modes shm-ring,shm-ring-batch --workers 1,2 --amounts 31 --capacities 1,8 --repetitions 2 --warmups 1

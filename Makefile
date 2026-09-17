@@ -102,3 +102,9 @@ build/test_shm_ring_batch: tests/test_shm_ring_batch.c src/ipc/shm_ring.c src/co
 test: batch-test
 batch-test: build/test_shm_ring_batch
 	./build/test_shm_ring_batch
+
+.PHONY: runtime-test batch-test fault-test sanitizer-test
+SAFE_TEST_BINS = $(filter-out build/test_process_unsafe,$(TEST_BINS)) build/test_runtime build/test_shm_ring_batch
+sanitizer-test:
+	$(MAKE) -B $(SAFE_TEST_BINS) CFLAGS='-std=c11 -Wall -Wextra -Werror -pedantic -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie'
+	@set -e; for binary in $(SAFE_TEST_BINS); do ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 $$binary; done

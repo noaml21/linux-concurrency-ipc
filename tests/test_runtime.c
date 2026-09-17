@@ -29,6 +29,7 @@ int main(void) {
     assert(!runtime_ready(-1, 1));
     assert(runtime_begin(1));
     assert(!runtime_cancelled());
+    assert(!runtime_ready(-1, 1));
     puts("test_runtime: PASS");
     return 0;
 }

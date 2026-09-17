@@ -85,7 +85,7 @@ allocation errors, arbitrary thread stalls and SIGKILL cleanup are not simulated
 Engine `elapsed_seconds` begins immediately before worker creation and ends after
 consumption and child reaping/joining. It includes record generation, transport,
 online validation, scheduling, polling and lifecycle overhead. It excludes initial
-resource/validator allocation, final validator scan and final resource destruction.
+resource/validator allocation, final constant-time validator summary and final resource destruction.
 This is a **worker-lifecycle interval**, not steady state or full end-to-end time.
 No per-record latency is instrumented. V3 cancellation checks have measurable cost;
 comparisons must use the same build and validation settings.

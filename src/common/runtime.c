@@ -32,7 +32,7 @@ static double now(void) {
 
 static void interrupt_run(int signal_number) {
     (void) signal_number;
-    atomic_store(&stopped, 1);
+    runtime_cancel();
 }
 
 bool runtime_configure(uint32_t milliseconds) {
@@ -71,14 +71,16 @@ bool runtime_cancelled(void) {
         return true;
     }
     if (deadline > 0 && now() >= deadline) {
-        atomic_store(&stopped, 2);
+        int expected = 0;
+        atomic_compare_exchange_strong(&stopped, &expected, 2);
         return true;
     }
     return false;
 }
 
 void runtime_cancel(void) {
-    atomic_store(&stopped, 1);
+    int expected = 0;
+    atomic_compare_exchange_strong(&stopped, &expected, 1);
 }
 
 const char *runtime_reason(void) {
@@ -141,6 +143,8 @@ static void escalate(void) {
 pid_t runtime_wait(int *status, int options) {
     for (;;) {
         bool pending = false;
+        /* A child may observe the shared deadline before the owner wakes. */
+        (void) runtime_cancelled();
         for (size_t i = 0; i < child_count; ++i) {
             pid_t waited;
             if (children[i] <= 0) {
@@ -192,6 +196,10 @@ int runtime_semop(int id, struct sembuf *actions, size_t count) {
 
 bool runtime_ready(int fd, short events) {
     struct pollfd descriptor = {fd, events, 0};
+    if (fd < 0) {
+        errno = EBADF;
+        return false;
+    }
     while (!runtime_cancelled()) {
         int result = poll(&descriptor, 1, 50);
         if (result > 0) {

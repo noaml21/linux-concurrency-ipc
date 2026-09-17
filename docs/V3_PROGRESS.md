@@ -36,3 +36,17 @@ Inspect `git status`, log and actual verification results before continuing.
 All source/documentation is English; user progress/handoff is Hebrew.
 No existing C/Python tests may be weakened. SIGKILL/machine-failure limitations
 must be explicit. Preserve original V1 datasets and V2 checkout.
+
+## Final review checkpoint
+
+- Added Linux GCC/Clang compiler, fault/stress, ASan/UBSan and Python/UI CI jobs.
+- Focused review fixed invalid-FD polling and preservation of the deadline reason
+  when a blocked worker notices expiry before the owner wakes. The first strict
+  deadline-diagnostic run exposed the latter race; repaired without weakening it.
+- `make test app release fault-test` passed; `make sanitizer-test` passed on GCC.
+  Full 40-test suite passed before two new provenance/perf tests; all 8 targeted
+  V3 tests then passed (42 total tests now). Clang unavailable locally; CI pending.
+- README, resource/protocol design, five-minute demo and AI-transparent study guide
+  updated. V1 raw/summary CSVs and V1 benchmark/stress scripts have no diff.
+- Remaining: clean-commit measurement/report, final exact-commit full verification,
+  push only V3, one draft PR, inspect/fix remote CI. Do not report completion yet.

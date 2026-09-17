@@ -13,15 +13,24 @@ The IPC experiments use multiple producer processes and one consumer process to 
 - an anonymous pipe;
 - a named FIFO;
 - a capacity-1 System V shared-memory mailbox;
-- a bounded System V shared-memory ring buffer.
+- a bounded System V shared-memory ring buffer;
+- an opt-in producer-batched ring with the original ring as its comparison baseline.
 
-## Interactive benchmark lab (V2)
+## Reliable interactive benchmark lab (V3)
 
 **Linux Concurrency & IPC Lab** adds a Textual terminal interface over the same
 C release executable. Configure experiments, watch real execution progress,
 inspect correctness and throughput, sweep ring capacities, revisit local runs,
 compare compatible experiments, and export summaries. All V1 commands and CSV
 workflows below remain available without installing Textual.
+
+V3 adds C-owned cancellation/deadlines, tracked-child cleanup, test-only failure
+injection, durable per-attempt history, seeded experiment matrices and a batched
+ring. It preserves V1 output and the V2 interface/default selections. The engine
+now limits workers to 64 and has a default 30-second deadline; the lab uses at most
+32 workers. See the [design and fault matrix](docs/V3_DESIGN.md),
+[five-minute demo](docs/V3_DEMO.md), [performance report](docs/V3_PERFORMANCE.md),
+[study guide](docs/V3_STUDY_GUIDE.md) and [checkpoint](docs/V3_PROGRESS.md).
 
 ### Setup and launch
 
@@ -60,7 +69,7 @@ controls and details; tables also scroll horizontally.
 4. **Results:** select a row to see validation counters, expected and observed
    counts, accepted-sample sparkline, and the original engine output. The table
    shows median/min/max throughput and accepted/planned sample count (`n`).
-   Export summary CSV writes a separate V2 CSV under `results/lab/exports/`.
+   Export summary CSV writes a separate lab CSV under `results/lab/exports/`.
 5. **History:** select a saved run and Open it. To compare, Pin baseline, select
    a different run, then Compare. Both must be complete without failures, with
    identical configuration, recorded system metadata, and engine digest.
@@ -70,13 +79,15 @@ changes a checkbox or selected mechanism. Ctrl+X requests cancellation;
 Ctrl+Q (or Ctrl+C) requests a safe quit. The default command palette is also
 available with Ctrl+P.
 
-**Cancellation finishes the current execution and skips all remaining ones.**
-The C engine owns FIFO/System V IPC cleanup and child reaping. Its existing CLI
-has no cooperative mid-execution cancellation protocol, so the lab never kills
-it to simulate immediate cancellation. Quit also waits for cleanup and history
-saving. A genuinely stalled engine can therefore delay cancellation indefinitely;
-there is no hard timeout. The UI remains responsive and labels long executions.
-Force-closing the terminal or killing the app cannot guarantee cleanup or saving.
+**Cancel asks the active C owner to stop, reap children and remove its resources.**
+The engine polls cancellation/deadlines at blocking boundaries and escalates stalled
+owned children from SIGTERM to SIGKILL after 200 ms. Quit drains and saves history.
+Use trailing `--deadline-ms 1..120000` in the CLI, or Deadline ms in Configure.
+Default deadline is 30 seconds; very short cases may finish before cancellation.
+This is cooperative bounded shutdown under normal Linux scheduling, not a real-time
+promise. Uninterruptible kernel sleep, owner SIGKILL and machine failure cannot
+have guaranteed cleanup. The UI has an emergency watchdog, which reports failure
+and explicitly cannot promise cleanup of an unresponsive owner.
 
 ### Interpretation and limits
 
@@ -94,13 +105,19 @@ Force-closing the terminal or killing the app cannot guarantee cleanup or saving
 - Median bars are relative to accepted medians in that run. Sparklines show
   accepted repetitions in execution order. Min/max describe spread, not a
   confidence interval. Tiny demo workloads emphasize startup/scheduling overhead.
-- The lab runs cases sequentially, grouped by mechanism/capacity, without warmup,
-  randomization, CPU affinity, or frequency control. System metadata is useful
-  context, not proof of identical hardware/load. Comparisons make no statistical
-  significance or universal performance claims.
+- Runs remain sequential. Configure optional worker/item matrices, 0..3 warmups,
+  seed and randomized/interleaved repetition blocks. The headless experiment CLI
+  defaults to interleaving; the UI preserves ordered V2 defaults. Warmups remain
+  in raw history but never enter performance statistics. CPU affinity is recorded,
+  not changed; frequency, system load and scheduling remain uncontrolled.
+- Engine elapsed time is the worker-lifecycle interval, including worker creation,
+  record generation, transport, online validation and reaping. Resource allocation,
+  final summary and destruction are outside that interval. Python also records
+  end-to-end process wall time. Neither is steady-state throughput or record latency.
 - UI limits: 1–32 workers/producers, 1–100,000 items each, at most 200,000 items
   per execution, 1–15 repetitions, capacities 1–32,767, at most 90 executions and
-  5,000,000 configured items per experiment. These limits do not change the C CLI.
+  5,000,000 configured items including warmups per experiment. The lab stops scheduling
+  after 600 seconds; the current execution still gets its deadline and cleanup grace.
 
 ### Architecture and stored data
 
@@ -124,16 +141,19 @@ Only the C engine measures time, performs operations, and validates records.
 `analysis.py` computes descriptive statistics. The UI renders results and handles
 interaction; it does not implement IPC or synchronization algorithms.
 
-Each run JSON has `schema_version: 1`, a unique run ID, UTC start/finish timestamps,
-full configuration (including the sweep), cancellation state, OS/kernel/architecture,
-CPU count, Python version, release-engine name and SHA-256, and every attempted
-case with its repetition, stdout, stderr, exit code or launch error. Results are
-reparsed on load; aggregate values are not trusted from disk. The schema and
-schedule are validated, and unreadable files are reported without preventing
-other history from loading. Writes use a temporary sibling file and atomic rename.
-History is saved when a run finishes or is cancelled; unexpected app termination
-before that point can lose that run. Save failures retain results in the app with
-a retry button. Generated history, exports, and `.venv/` are ignored by Git.
+Run JSON uses **schema 2**, with full configuration/schedule seed, run state,
+raw stdout/stderr, exact command, wall time, correctness, engine digest, source
+commit/dirty state, compiler/flags, build commit/dirty state and OS/CPU/affinity.
+A matching binary digest is required before trusting its build manifest. Unknown
+build metadata is labeled unavailable. Schema-1 V2 history is migrated on read
+with ordered scheduling; old files are not automatically rewritten. A batch case
+also records its effective batch size. Results and schedule are validated on load.
+
+History is saved before starting, after every completed attempt and at completion.
+Writes fsync a temporary sibling, atomically replace the destination and fsync the
+directory. An interrupted run reopens as INCOMPLETE with prior completed samples;
+the active unfinished case is not a measurement. Save failures are shown and
+results retained in memory for retry. `.venv/` and `results/lab/` are Git-ignored.
 
 To reproduce a saved experiment, use its configuration in Configure and compare
 the recorded engine digest and environment metadata. Preserve the JSON alongside
@@ -152,11 +172,25 @@ python3 scripts/stress.py
 
 The Python suite uses standard-library unittest and Textual Pilot. It includes
 parser/validation/statistics/command/history tests, real tiny CLI executions of
-all seven mechanisms, and UI workflows for IPC, sync, capacity sweep, cancellation,
+all eight mechanisms, and UI workflows for IPC, sync, capacity sweep, cancellation,
 history, comparison, export, storage errors, and smaller terminals. Build the
 release binary first; real integration tests are required, not silently skipped.
-See [the reproducible demo](docs/V2_DEMO.md), [implementation plan](docs/V2_PLAN.md),
-and [milestone verification log](docs/V2_BUILD_LOG.md).
+See [the V3 demo](docs/V3_DEMO.md). The [V2 demo](docs/V2_DEMO.md),
+[plan](docs/V2_PLAN.md) and [build log](docs/V2_BUILD_LOG.md) retain their historical context.
+
+### Reproducible matrix commands
+
+```sh
+# Short demo, same C engine and history as the UI; no Textual import required
+.venv/bin/python -m ipc_lab.experiment --modes shm-ring,shm-ring-batch --workers 1,2 --amounts 100,2000 --capacities 2,64 --repetitions 3 --warmups 1 --batch-size 8 --seed 2026
+# Longer bounded ring study; defaults stay within 90 executions
+.venv/bin/python -m ipc_lab.experiment --preset research --perf
+```
+
+JSON, summary CSV and a Markdown distribution report go under `results/lab/`.
+The optional separate perf probe records actual output or unavailability and never
+changes kernel settings. Research presets remain limited laptop experiments, not
+publication-quality evidence; explicit arguments exceeding bounds are rejected.
 
 ## Key technical ideas
 
@@ -225,6 +259,21 @@ make release  # Build the benchmark CLI with -O2
 make clean    # Remove the complete build/ directory
 ```
 
+Additional V3 verification:
+
+```sh
+make fault-test      # separate IPC_TESTING binary; controlled faults and cleanup
+make sanitizer-test  # ASan+UBSan on safe C modes; rebuilds test binaries
+```
+
+GitHub Actions runs strict GCC/Clang builds, bounded fault checks, stress tests,
+ASan/UBSan and Python/core/integration/UI tests. Intentionally racy process-unsafe
+is excluded from sanitizer correctness tests. Sanitizers cannot prove interprocess
+ordering, fairness or complete race freedom; deterministic faults test selected
+failure paths. CI contains no noisy performance thresholds. Non-PIE sanitizer
+executables avoid address-space shadow mapping collisions; release builds retain
+the compiler's default executable model.
+
 The optimized executable is:
 
 ```sh
@@ -250,9 +299,12 @@ IPC experiments:
 ./build/linux-concurrency-ipc ipc fifo 4 20000
 ./build/linux-concurrency-ipc ipc shm-mailbox 4 20000
 ./build/linux-concurrency-ipc ipc shm-ring 4 20000 8
+./build/linux-concurrency-ipc ipc shm-ring-batch 4 20000 64 8 --deadline-ms 5000
 ```
 
-Successful commands print exactly one machine-readable line of whitespace-separated `key=value` fields. Synchronization output includes expected and observed operations, lost updates, elapsed time, and operations per second. IPC output includes validation counters, elapsed time, and records per second; ring output also includes capacity.
+Successful commands print exactly one machine-readable line of whitespace-separated `key=value` fields. Synchronization output includes expected and observed operations, lost updates, elapsed time, and operations per second. IPC output includes validation counters, elapsed time, and records per second; ring output also includes capacity; batch mode additionally includes batch_size.
+A validation failure returns nonzero. Batch size must not exceed capacity in the
+C CLI. In the lab, Max batch is clamped to each case capacity and recorded explicitly.
 
 ## Correctness and stress testing
 
@@ -273,7 +325,7 @@ Every IPC stress case uses 8 producers × 50,000 records, or 400,000 records tot
 
 The runner verifies the returned family, mode, and workload metadata. Synchronized counters must be exact with zero lost updates. Every IPC case must receive all expected records, pass validation, and report zero missing, duplicate, corrupted, and out-of-range records. It stops immediately on a non-zero exit, malformed output, timeout, or correctness failure; it does not collect performance data.
 
-## Benchmark methodology
+## Original V1 benchmark methodology (preserved)
 
 The included dataset was generated with:
 
@@ -288,7 +340,7 @@ Each case is executed seven times for the included dataset. The runner parses th
 
 These results were collected in Ubuntu running under WSL2. They describe this implementation and environment; they should not be generalized to all Linux systems or hardware.
 
-## Final benchmark results
+## Original V1 benchmark results (WSL2, preserved)
 
 ### Synchronization
 
@@ -315,7 +367,7 @@ The unsafe mode's high reported rate is not useful synchronized throughput. Its 
 
 Values are rounded to the nearest whole operation or record per second. Exact values and per-run variation remain available in the CSV files.
 
-## Interpretation
+## Original V1 interpretation
 
 The pthread mutex counter was dramatically faster than the System V semaphore counter in this experiment. This is not a comparison of interchangeable primitives alone: the pthread case uses threads in one process, while the System V semaphore case synchronizes separate processes and invokes a different kernel IPC mechanism for every increment. The `process-sem` implementation also uses `SEM_UNDO`, so its measured cost includes the associated kernel bookkeeping.
 

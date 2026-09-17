@@ -73,7 +73,10 @@ class DurableExecutionTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsNone(run.summaries()[0].median_rate)
         cancel = asyncio.Event()
         config = Config(modes=("shm-mailbox",), amount=100000, workers=2, repetitions=2)
-        task = asyncio.create_task(run_experiment(config, BINARY, cancel))
+        entered = asyncio.Event()
+        task = asyncio.create_task(run_experiment(config, BINARY, cancel,
+                                  lambda event: entered.set() if event.phase == "started" else None))
+        await asyncio.wait_for(entered.wait(), 3)
         await asyncio.sleep(0.1)
         cancel.set()
         run = await asyncio.wait_for(task, 3)
@@ -123,3 +126,28 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                 await app.workers.wait_for_complete()
                 self.assertEqual(app.current.status, "COMPLETE")
                 self.assertEqual(app.current.attempts[0].case.batch_size, 2)
+
+
+class ProvenanceTests(unittest.TestCase):
+    def test_build_digest_mismatch_is_not_trusted(self):
+        import shutil
+        with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
+            binary = Path(directory) / "engine"
+            shutil.copyfile(BINARY, binary)
+            binary.with_suffix(".build.json").write_text(json.dumps({
+                "engine_sha256": "0" * 64, "compiler": "not-the-real-compiler"}))
+            metadata = environment(binary)
+            self.assertEqual(metadata["compiler"], "unavailable")
+            self.assertNotEqual(metadata["engine_sha256"], "0" * 64)
+
+    def test_optional_perf_unavailability_and_distribution_report(self):
+        from ipc_lab.experiment import perf_probe, report
+        run = example_run()
+        with patch("ipc_lab.experiment.shutil.which", return_value=None):
+            probe = perf_probe(BINARY, run.config.cases()[0], ROOT / "build")
+        self.assertFalse(probe["available"])
+        self.assertIn("unavailable", probe["reason"])
+        output = report(run)
+        self.assertIn("Sample SD/s", output)
+        self.assertIn("2,000.0", output)
+        self.assertIn("No steady-state or latency", output)

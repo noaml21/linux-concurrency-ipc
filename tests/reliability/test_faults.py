@@ -44,6 +44,8 @@ class FaultTests(unittest.TestCase):
                     self.assertNotEqual(result.returncode, 0, result.stdout)
                     self.assertLess(time.monotonic() - start, 3)
                     self.assertFalse(result.stdout, "failed work must not become a measurement")
+                    if fault == "producer-stall":
+                        self.assertIn("deadline exceeded", result.stderr)
                     self.assert_clean(result.stderr)
 
     def test_backpressure_success_and_deadline(self):
