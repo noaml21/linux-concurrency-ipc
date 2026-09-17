@@ -20,7 +20,11 @@ Branch: `v3/reliable-ipc-lab`. Never merge or release.
    completed with 24 accepted measured samples (8 warmups). Raw development
    dataset and unavailable perf diagnostics committed; original V1 data untouched.
    Schema 1 migration, active cancellation, checkpoints and seed bounds tested.
-3. Optimization: pending. Measure baseline, add bounded batched ring, compare.
+3. Optimization: VERIFIED. Producer-batched ring implemented alongside baseline.
+   `make test app release fault-test` passed, including all batch sizes through
+   capacity 64, wraparound, partial batches and fault cleanup. All 40 Python/UI
+   tests passed. An 80-execution development comparison completed; cap-64 batch-8
+   medians were higher, cap-2 results mixed. Final clean-build dataset pending.
 4. CI/docs/review: pending. Compiler/sanitizer jobs, real report, demo, study guide,
    exact-final-commit checks, push V3 only and create one draft PR to main.
 

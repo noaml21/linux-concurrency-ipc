@@ -95,3 +95,10 @@ build/test_runtime: tests/test_runtime.c src/common/runtime.c src/ipc/pipe.c src
 test: runtime-test
 runtime-test: build/test_runtime
 	./build/test_runtime
+
+build/test_shm_ring_batch: tests/test_shm_ring_batch.c src/ipc/shm_ring.c src/common/runtime.c src/common/validator.c src/common/record.c src/common/timing.c include/ipc.h include/runtime.h | build
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_shm_ring_batch.c src/ipc/shm_ring.c src/common/runtime.c src/common/validator.c src/common/record.c src/common/timing.c -o $@
+
+test: batch-test
+batch-test: build/test_shm_ring_batch
+	./build/test_shm_ring_batch

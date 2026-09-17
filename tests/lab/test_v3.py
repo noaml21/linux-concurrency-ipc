@@ -80,3 +80,46 @@ class DurableExecutionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.status, "CANCELLED")
         self.assertEqual(len(run.attempts), 1)
         self.assertIsNone(run.attempts[0].measurement)
+
+
+class BatchTests(unittest.IsolatedAsyncioTestCase):
+    async def test_batch_roundtrip_parser_export(self):
+        import csv
+        from ipc_lab.models import Case
+        from ipc_lab.parsing import parse_output
+        config = Config(modes=("shm-ring", "shm-ring-batch"), amount=31,
+                        sweep=(1, 2, 8), batch_size=3, repetitions=2,
+                        warmups=1, interleave=True)
+        run = await run_experiment(config, BINARY, asyncio.Event())
+        self.assertEqual(run.status, "COMPLETE")
+        self.assertEqual(deserialize(serialize(run)), run)
+        self.assertEqual([s.accepted for s in run.summaries()], [2] * 6)
+        self.assertEqual([c.batch_size for c in config.cases() if c.batch_size], [1, 2, 3])
+        with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
+            path = History(Path(directory)).export_csv(run)
+            with path.open() as source:
+                rows = list(csv.DictReader(source))
+            self.assertEqual([r["batch_size"] for r in rows], ["", "", "", "1", "2", "3"])
+        attempt = next(a for a in run.attempts if a.case.batch_size == 3)
+        with self.assertRaises(ValueError):
+            parse_output(attempt.stdout.replace("batch_size=3", "batch_size=2"), attempt.case)
+        for case in (("ipc", "shm-ring-batch", 2, 10, 2, 3),
+                     ("ipc", "pipe", 2, 10, None, 1)):
+            with self.assertRaises(ValueError):
+                Case(*case)
+
+    async def test_batch_ui_configuration_and_run(self):
+        from ipc_lab.app import LabApp
+        from textual.widgets import Input, SelectionList
+        with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
+            app = LabApp(BINARY, Path(directory))
+            async with app.run_test(size=(100, 36)) as pilot:
+                app.query_one("#mechanisms", SelectionList).deselect_all()
+                app.query_one("#mechanisms", SelectionList).select("shm-ring-batch")
+                app.query_one("#amount", Input).value = "31"
+                app.query_one("#repetitions", Input).value = "1"
+                app.query_one("#capacity", Input).value = "2"
+                await pilot.press("ctrl+r")
+                await app.workers.wait_for_complete()
+                self.assertEqual(app.current.status, "COMPLETE")
+                self.assertEqual(app.current.attempts[0].case.batch_size, 2)

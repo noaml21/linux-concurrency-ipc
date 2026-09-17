@@ -140,7 +140,7 @@ class History:
         deserialize(serialize(run))
         output = io.StringIO(newline="")
         columns = ["run_id", "started", "status", "family", "mode", "workers_or_producers",
-                   "items_per_worker_or_producer", "capacity", "planned_repetitions",
+                   "items_per_worker_or_producer", "capacity", "batch_size", "planned_repetitions",
                    "accepted_samples", "failures", "correctness", "rate_unit",
                    "median_rate", "min_rate", "max_rate", "expected_per_execution",
                    "observed_min", "observed_max", "missing_total", "duplicates_total",
@@ -151,7 +151,7 @@ class History:
             case = summary.case
             row = dict(run_id=run.run_id, started=run.started, status=run.status,
                        family=case.family, mode=case.mode, workers_or_producers=case.workers,
-                       items_per_worker_or_producer=case.amount, capacity=case.capacity,
+                       items_per_worker_or_producer=case.amount, capacity=case.capacity, batch_size=case.batch_size,
                        planned_repetitions=run.config.repetitions, accepted_samples=summary.accepted,
                        failures=summary.failures, correctness=summary.correctness,
                        rate_unit="records/sec" if case.family == "ipc" else ("attempted operations/sec" if case.mode == "process-unsafe" else "operations/sec"),

@@ -9,7 +9,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 BINARY = ROOT / "build/linux-concurrency-ipc-fault"
-CASES = [("ipc", mode) for mode in ("pipe", "fifo", "shm-mailbox", "shm-ring")]
+CASES = [("ipc", mode) for mode in ("pipe", "fifo", "shm-mailbox", "shm-ring", "shm-ring-batch")]
 CASES += [("sync", mode) for mode in ("process-sem", "process-unsafe")]
 
 

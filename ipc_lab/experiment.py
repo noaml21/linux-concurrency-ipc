@@ -59,7 +59,7 @@ async def main_async(args) -> int:
                     amount_matrix=tuple(map(int, args.amounts.split(","))),
                     sweep=tuple(map(int, args.capacities.split(","))),
                     repetitions=args.repetitions, warmups=args.warmups,
-                    seed=args.seed, interleave=True, deadline_ms=args.deadline_ms)
+                    seed=args.seed, interleave=True, deadline_ms=args.deadline_ms, batch_size=args.batch_size)
     binary = ROOT / "build/linux-concurrency-ipc-release"
     history = History(ROOT / "results/lab")
     cancel = asyncio.Event()
@@ -89,6 +89,7 @@ def main() -> int:
     parser.add_argument("--warmups", type=int, default=1)
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument("--deadline-ms", type=int, default=5000)
+    parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--perf", action="store_true")
     args = parser.parse_args()
     if args.preset == "research":

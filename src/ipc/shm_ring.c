@@ -143,6 +143,40 @@ static bool send_message(
     return semaphore_operation(semaphore_id, SEMAPHORE_FULL, 1);
 }
 
+static bool send_batch(
+    int semaphore_id,
+    shared_ring_t *ring,
+    size_t capacity,
+    uint32_t producer,
+    uint64_t sequence,
+    uint32_t count
+) {
+    struct sembuf reserve[] = {
+        {SEMAPHORE_EMPTY, -(short) count, 0},
+        {SEMAPHORE_PRODUCER_MUTEX, -1, 0}
+    };
+    struct sembuf publish[] = {
+        {SEMAPHORE_PRODUCER_MUTEX, 1, 0},
+        {SEMAPHORE_FULL, (short) count, 0}
+    };
+    /* Atomic reservation cannot hold the mutex while waiting for capacity. */
+    if (runtime_semop(semaphore_id, reserve, 2) < 0) {
+        return false;
+    }
+    for (uint32_t i = 0; i < count; ++i) {
+        ring_message_t message = {0};
+        if (runtime_cancelled()) {
+            return false; /* Abort whole run: in-flight reservations are invalid. */
+        }
+        message.type = RING_RECORD;
+        message.record = record_make(producer, sequence + i);
+        ring->slots[ring->tail] = message;
+        ring->tail = advance_index(ring->tail, capacity);
+        runtime_child_fault(); /* Tests can stop after a partial write, before publish. */
+    }
+    return runtime_semop(semaphore_id, publish, 2) == 0;
+}
+
 static bool child_exited_successfully(int status) {
     return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 }
@@ -203,8 +237,9 @@ static bool reap_remaining_children(
     return succeeded && !runtime_cancelled();
 }
 
-bool ipc_run_shm_ring(
+static bool run_ring(
     const ipc_ring_config_t *config,
+    uint32_t batch_size,
     ipc_result_t *result
 ) {
     validator_t validator;
@@ -236,7 +271,8 @@ bool ipc_run_shm_ring(
 
     if (config->producers == 0 ||
         config->records_per_producer == 0 ||
-        config->capacity == 0) {
+        config->capacity == 0 || config->capacity > 32767 ||
+        batch_size > config->capacity) {
         return false;
     }
 
@@ -373,8 +409,17 @@ bool ipc_run_shm_ring(
                 ring_message_t message = {0};
 
                 for (uint64_t sequence = 0;
-                     sequence < config->records_per_producer;
-                     ++sequence) {
+                     sequence < config->records_per_producer;) {
+                    if (batch_size > 0) {
+                        uint64_t remaining = config->records_per_producer - sequence;
+                        uint32_t count = remaining < batch_size ? (uint32_t) remaining : batch_size;
+                        if (!send_batch(semaphore_id, ring, capacity, producer, sequence, count)) {
+                            shmdt(ring);
+                            _exit(1);
+                        }
+                        sequence += count;
+                        continue;
+                    }
                     message.type = RING_RECORD;
                     message.record = record_make(producer, sequence);
 
@@ -387,6 +432,7 @@ bool ipc_run_shm_ring(
                         shmdt(ring);
                         _exit(1);
                     }
+                    ++sequence;
                 }
 
                 message.type = RING_DONE;
@@ -514,4 +560,22 @@ bool ipc_run_shm_ring(
     free(producer_done);
     validator_destroy(&validator);
     return succeeded && !runtime_cancelled();
+}
+
+bool ipc_run_shm_ring(const ipc_ring_config_t *config, ipc_result_t *result) {
+    return run_ring(config, 0, result);
+}
+
+bool ipc_run_shm_ring_batch(
+    const ipc_ring_config_t *config,
+    uint32_t batch_size,
+    ipc_result_t *result
+) {
+    if (batch_size == 0) {
+        if (result) {
+            *result = (ipc_result_t) {0};
+        }
+        return false;
+    }
+    return run_ring(config, batch_size, result);
 }

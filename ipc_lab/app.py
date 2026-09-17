@@ -14,7 +14,7 @@ from textual.widgets import (
     RichLog, Select, SelectionList, Sparkline, Static, TabbedContent, TabPane,
 )
 
-from .models import Config, MODES, RING_CAPACITIES, parse_integer
+from .models import Config, MODES, AVAILABLE_MODES, RING_CAPACITIES, parse_integer
 from .presentation import detail, rate, relative_bar
 from .records import Run
 from .runner import Progress, run_experiment
@@ -66,7 +66,7 @@ class LabApp(App):
                             yield Static("Select mechanisms with Space.\nTab moves between fields.", classes="hint")
                         with Vertical(classes="choice"):
                             yield Label("Mechanisms")
-                            yield SelectionList(*[(mode, mode, True) for mode in MODES["ipc"]], id="mechanisms")
+                            yield SelectionList(*[(mode, mode, mode in MODES["ipc"]) for mode in AVAILABLE_MODES["ipc"]], id="mechanisms")
                     with Horizontal(id="parameters"):
                         for label, value, ident in (("Workers / prod.", "2", "workers"),
                                                     ("Items per worker", "2000", "amount"),
@@ -80,7 +80,8 @@ class LabApp(App):
                     with Horizontal(classes="advanced-parameters"):
                         for label, value, ident in (("Warmups (0..3)", "0", "warmups"),
                                                     ("Seed", "2026", "seed"),
-                                                    ("Deadline ms", "30000", "deadline")):
+                                                    ("Deadline ms", "30000", "deadline"),
+                                                    ("Max batch", "8", "batch-size")):
                             with Vertical(classes="parameter"):
                                 yield Label(label)
                                 yield Input(value, id=ident, select_on_focus=True)
@@ -139,10 +140,10 @@ class LabApp(App):
 
     @on(Select.Changed, "#family")
     def family_changed(self, event: Select.Changed) -> None:
-        modes = MODES[str(event.value)]
+        modes = AVAILABLE_MODES[str(event.value)]
         selections = self.query_one("#mechanisms", SelectionList)
         selections.clear_options()
-        selections.add_options([(mode, mode, True) for mode in modes])
+        selections.add_options([(mode, mode, mode in MODES[str(event.value)]) for mode in modes])
         sync = event.value == "sync"
         self.query_one("#capacity", Input).disabled = sync
         self.query_one("#sweep", Checkbox).disabled = sync
@@ -165,7 +166,7 @@ class LabApp(App):
         if self.query_one("#sweep", Checkbox).value:
             sweep = tuple(parse_integer(value, "Sweep capacity", 32767)
                           for value in self.query_one("#capacities", Input).value.split(","))
-        return Config(family, tuple(mode for mode in MODES[family] if mode in selected),
+        return Config(family, tuple(mode for mode in AVAILABLE_MODES[family] if mode in selected),
                       number("workers", 32), number("amount", 100000),
                       number("repetitions", 15), number("capacity", 32767) if family == "ipc" else 64,
                       sweep,
@@ -173,7 +174,7 @@ class LabApp(App):
                       tuple(parse_integer(v, "Amount matrix", 100000) for v in self.query_one("#amount-matrix", Input).value.split(",") if v.strip()),
                       number("warmups", 3) if self.query_one("#warmups", Input).value.strip() != "0" else 0,
                       number("seed", 999999999) if self.query_one("#seed", Input).value.strip() != "0" else 0,
-                      self.query_one("#interleave", Checkbox).value, number("deadline", 120000))
+                      self.query_one("#interleave", Checkbox).value, number("deadline", 120000), number("batch-size", 32767))
 
     @on(Button.Pressed, "#run")
     def action_start(self) -> None:

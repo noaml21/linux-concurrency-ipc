@@ -47,6 +47,9 @@ def parse_output(stdout: str, case: Case) -> Measurement:
     if case.capacity is not None:
         integer_names.append("capacity")
         metadata["capacity"] = case.capacity
+    if case.batch_size is not None:
+        integer_names.append("batch_size")
+        metadata["batch_size"] = case.batch_size
     required = {"family", "mode", "elapsed_seconds", rate_name, *integer_names}
     if set(fields) != required:
         raise ValueError(f"Unexpected engine fields: missing={required - fields.keys()}, extra={fields.keys() - required}")

@@ -124,3 +124,35 @@ build was honestly recorded dirty. The local i5-12450H showed wide spread and lo
 throughput with capacity 2 than 64. Per-record semaphore calls are a plausible
 batching target, not an established hardware bottleneck: perf was denied by the
 existing kernel policy (recorded in `v3-perf-probe.json`; no settings changed).
+
+## Batched ring
+
+`shm-ring` is the original per-record protocol. `shm-ring-batch` shares allocation,
+consumer validation, DONE handling and cleanup, with a separate producer send path.
+Capacity always counts individual record/DONE slots (1..32767), not batches.
+The C API/CLI require `1 <= batch_size <= capacity`. Lab configuration means
+**maximum batch size**: each matrix case records `min(max_batch, capacity)` explicitly.
+The final batch contains the exact remaining records; DONE remains a separate
+message for each producer and is sent only after all its records are published.
+
+Each batch atomically reserves N EMPTY slots and the producer mutex in a single
+semtimedop. It never holds the mutex while waiting for capacity. It fills N slots,
+wrapping tail as needed, then atomically unlocks and publishes N FULL credits.
+While reserved, N belongs to in-flight state, not FULL. A stopped/failed writer can
+leave some bytes initialized but no FULL credits; the owner aborts and discards
+all measurements, rather than guessing which bytes are valid or undoing counts.
+The consumer still handles/validates individual records; producer semaphore calls
+fall from four per record to two per batch (consumer calls remain two per record).
+This is batching, not a lock-free algorithm. Batch size one tests the alternate
+atomic operation path; it is not identical in syscall count to the baseline.
+
+Larger batches wait for more free slots and may increase buffering/scheduling delay;
+no latency has been measured. Capacity-2 development measurements were sometimes
+neutral or slower, while capacity-64 batch-8 showed larger throughput medians.
+These are descriptive local results, not significance or universal speedup claims.
+
+Schema 2 includes optional case `batch_size` (null for baseline modes) and configured
+maximum batch size. Existing schema-1 and pre-batch schema-2 cases default to null;
+only explicitly selected batch cases require it. CSV includes a separate batch
+column. The V2 MODES constant/default selection is retained; AVAILABLE_MODES and
+the UI expose the additional opt-in variant. Nothing rewrites the V1 dataset.

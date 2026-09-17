@@ -9,6 +9,7 @@ MODES = {
     "ipc": ("pipe", "fifo", "shm-mailbox", "shm-ring"),
     "sync": ("process-unsafe", "threads-mutex", "process-sem"),
 }
+AVAILABLE_MODES = {**MODES, "ipc": (*MODES["ipc"], "shm-ring-batch")}
 RING_CAPACITIES = (1, 2, 8, 64, 256, 1024)
 
 
@@ -33,28 +34,36 @@ class Case:
     workers: int
     amount: int
     capacity: int | None = None
+    batch_size: int | None = None
 
     def __post_init__(self) -> None:
-        if self.family not in MODES or self.mode not in MODES[self.family]:
+        if self.family not in MODES or self.mode not in AVAILABLE_MODES[self.family]:
             raise ValueError("Choose a supported experiment mechanism")
         bounded_integer(self.workers, "Workers/producers", 32)
         bounded_integer(self.amount, "Items per worker/producer", 100_000)
         if self.workers * self.amount > 200_000:
             raise ValueError("Limit each execution to 200,000 total items")
-        if self.mode == "shm-ring":
+        if self.mode in ("shm-ring", "shm-ring-batch"):
             bounded_integer(self.capacity, "Ring capacity", 32767)
         elif self.capacity is not None:
-            raise ValueError("Capacity applies only to shm-ring")
+            raise ValueError("Capacity applies only to ring modes")
+        if self.mode == "shm-ring-batch":
+            bounded_integer(self.batch_size, "Batch size", self.capacity)
+        elif self.batch_size is not None:
+            raise ValueError("Batch size applies only to shm-ring-batch")
 
     @property
     def name(self) -> str:
         suffix = f" / cap {self.capacity}" if self.capacity is not None else ""
-        return self.mode + suffix
+        batch = f" / batch {self.batch_size}" if self.batch_size is not None else ""
+        return self.mode + suffix + batch + f" / {self.workers} × {self.amount}"
 
     def command(self, binary: Path) -> list[str]:
         args = [str(binary), self.family, self.mode, str(self.workers), str(self.amount)]
         if self.capacity is not None:
             args.append(str(self.capacity))
+        if self.batch_size is not None:
+            args.append(str(self.batch_size))
         return args
 
 
@@ -73,13 +82,14 @@ class Config:
     seed: int = 2026
     interleave: bool = False
     deadline_ms: int = 30000
+    batch_size: int = 8
 
     def __post_init__(self) -> None:
         if self.family not in MODES:
             raise ValueError("Choose IPC or synchronization")
         if not isinstance(self.modes, tuple) or not self.modes:
             raise ValueError("Select at least one mechanism")
-        if any(mode not in MODES[self.family] for mode in self.modes):
+        if any(mode not in AVAILABLE_MODES[self.family] for mode in self.modes):
             raise ValueError("Mechanisms must belong to the selected experiment")
         if len(set(self.modes)) != len(self.modes):
             raise ValueError("Mechanisms must not be repeated")
@@ -91,7 +101,7 @@ class Config:
             bounded_integer(value, "Sweep capacity", 32767)
         if len(set(self.sweep)) != len(self.sweep):
             raise ValueError("Sweep capacities must not be repeated")
-        if self.sweep and "shm-ring" not in self.modes:
+        if self.sweep and not any(mode.startswith("shm-ring") for mode in self.modes):
             raise ValueError("Select shm-ring to sweep capacity")
         for values, name, maximum in ((self.worker_matrix, "Worker matrix", 32),
                                       (self.amount_matrix, "Amount matrix", 100000)):
@@ -106,6 +116,7 @@ class Config:
         if type(self.interleave) is not bool:
             raise ValueError("Interleave must be boolean")
         bounded_integer(self.deadline_ms, "Deadline milliseconds", 120000)
+        bounded_integer(self.batch_size, "Batch size", 32767)
         cases = self.cases()
         if len(cases) * (self.repetitions + self.warmups) > 90:
             raise ValueError("Limit the experiment to 90 executions")
@@ -115,8 +126,9 @@ class Config:
     def cases(self) -> tuple[Case, ...]:
         cases = []
         for mode in self.modes:
-            capacities = (self.sweep or (self.capacity,)) if mode == "shm-ring" else (None,)
-            cases.extend(Case(self.family, mode, workers, amount, cap)
+            capacities = (self.sweep or (self.capacity,)) if mode.startswith("shm-ring") else (None,)
+            cases.extend(Case(self.family, mode, workers, amount, cap,
+                              min(self.batch_size, cap) if mode == "shm-ring-batch" else None)
                          for workers in (self.worker_matrix or (self.workers,))
                          for amount in (self.amount_matrix or (self.amount,))
                          for cap in capacities)
