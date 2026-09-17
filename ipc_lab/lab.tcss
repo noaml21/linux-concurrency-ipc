@@ -1,0 +1,44 @@
+Screen { background: #0d1520; color: #d5e3ee; }
+Header { background: #163044; color: #e6f6ff; }
+#brand { height: 1; color: #65d6c5; padding: 0 2; text-style: bold; }
+TabbedContent { height: 1fr; }
+TabPane { padding: 0 2; }
+Tabs { background: #111f2e; }
+VerticalScroll { height: 1fr; }
+Label { color: #afc5d6; margin-top: 1; }
+Select { margin: 0; }
+Input { border: tall #304a60; }
+Input:focus { border: tall #65d6c5; }
+SelectionList { height: 6; border: round #304a60; margin-bottom: 1; }
+#choices { height: 7; }
+.choice { width: 1fr; height: 7; margin-right: 1; }
+.choice Label { margin: 0; }
+.choice .hint { margin: 0; }
+#parameters { height: 4; }
+.parameter { width: 1fr; height: 4; margin-right: 1; }
+.parameter Label { margin: 0; height: 1; }
+.parameter Input { width: 100%; }
+.lead { color: #d5e3ee; height: auto; margin-bottom: 0; }
+.hint { color: #91a7ba; height: auto; margin: 1 0; }
+.actions { height: 3; margin-top: 0; }
+Button { margin-right: 1; min-width: 12; }
+Button.-primary { background: #1b766f; }
+#validation { height: auto; min-height: 2; max-height: 4; color: #f4c981; padding-top: 1; }
+#live-current { height: 4; color: #65d6c5; text-style: bold; }
+#live-counts { height: 2; padding-top: 1; }
+#events { height: 1fr; min-height: 4; border: round #304a60; background: #101d2b; }
+ProgressBar { width: 100%; margin: 0 0 1 0; }
+#result-title { height: auto; color: #65d6c5; text-style: bold; }
+DataTable { background: #101d2b; border: round #304a60; }
+#summary { height: 11; }
+#detail { height: auto; min-height: 5; padding: 1; background: #142636; }
+#samples { height: 3; color: #65d6c5; margin-bottom: 1; }
+#raw { height: 9; border: round #304a60; }
+#result-message { height: auto; max-height: 3; color: #91a7ba; }
+#history-table { height: 10; }
+#history-message { height: auto; min-height: 2; color: #f4c981; margin-top: 1; }
+#metadata { height: auto; margin: 1 0; color: #91a7ba; }
+#comparison { height: 9; }
+Footer { background: #163044; }
+
+#summary-hint { height: auto; color: #91a7ba; margin: 0 0 1 0; }

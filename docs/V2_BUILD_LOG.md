@@ -40,3 +40,21 @@
   exact observed count and zero lost updates.
 - Reviewed the diff: only new lab modules/tests, ignore rules, and this log;
   no changes to the C engine, C tests, V1 scripts, or baseline CSVs.
+
+## Milestone 3 — interactive Textual lab
+
+- Added styled Configure, Live, Results and History tabs; ring capacity sweeps,
+  real completion counts, correctness details, sample sparklines, relative median
+  bars, raw output inspection, compatible history comparisons, save retry and CSV.
+- Added `scripts/explore`, dependency/release guidance and `--check`; pinned
+  Textual 8.2.8 in the optional lab requirements. Installed only in local `.venv/`.
+- All 28 core/integration/presentation/UI tests passed after layout refinement;
+  four additional launcher tests passed (32 total). UI tests run real IPC,
+  synchronization, and six-capacity sweeps, history/export/compare, cancellation,
+  invalid input, storage failure/retry, and keyboard navigation at 60×20.
+- Inspected the rendered 80×24 layout and compacted the configuration panels;
+  real-result tables are sized to reduce empty space. A local SVG capture remains
+  under ignored results, with no generated artifacts included in the commit.
+- `make test`: all 11 C tests passed. FIFO CLI (2 × 100) passed validation.
+  `./scripts/explore --check` passed. Reviewed the staged scope and whitespace;
+  C source, C tests, V1 scripts and recorded CSVs remain unchanged.
