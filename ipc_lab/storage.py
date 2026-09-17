@@ -3,6 +3,7 @@
 import csv
 import io
 import json
+import math
 import os
 import re
 from dataclasses import asdict
@@ -14,7 +15,7 @@ from .models import Case, Config
 from .records import Attempt, Run
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 MAX_HISTORY_BYTES = 2_000_000
 
 
@@ -29,11 +30,16 @@ def deserialize(text: str) -> Run:
         if type(data) is not dict or set(data) != required:
             raise ValueError("Missing or unexpected history fields")
         version = data.pop("schema_version")
-        if type(version) is not int or version != SCHEMA_VERSION:
+        if type(version) is not int or version not in (1, SCHEMA_VERSION):
             raise ValueError("Unsupported history schema")
         raw_config = data.pop("config")
         raw_config["modes"] = tuple(raw_config["modes"])
         raw_config["sweep"] = tuple(raw_config["sweep"])
+        for key in ("worker_matrix", "amount_matrix"):
+            if key in raw_config:
+                raw_config[key] = tuple(raw_config[key])
+        if version == 1:
+            raw_config["interleave"] = False
         config = Config(**raw_config)
         raw_attempts = data.pop("attempts")
         if not isinstance(raw_attempts, list) or len(raw_attempts) > config.total:
@@ -49,13 +55,25 @@ def deserialize(text: str) -> Run:
         if not isinstance(run.system, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in run.system.items()):
             raise ValueError("Invalid system metadata")
         required_system = {"system", "release", "machine", "cpu_count", "python", "engine", "engine_sha256"}
-        if set(run.system) != required_system or not re.fullmatch(r"[a-f0-9]{64}", run.system["engine_sha256"]):
+        allowed_system = required_system | {"source_commit", "source_dirty", "cpu_model", "cpu_affinity",
+                                            "compiler", "compiler_flags", "build_commit", "build_dirty"}
+        if not required_system <= set(run.system) <= allowed_system or not re.fullmatch(r"[a-f0-9]{64}", run.system["engine_sha256"]):
             raise ValueError("Missing or invalid system/engine metadata")
-        schedule = [(case, rep) for case in config.cases() for rep in range(1, config.repetitions + 1)]
+        schedule = config.schedule()
         for index, raw in enumerate(raw_attempts):
-            if set(raw) != {"case", "repetition", "stdout", "stderr", "returncode", "launch_error"}:
+            required_attempt = {"case", "repetition", "stdout", "stderr", "returncode", "launch_error"}
+            if version == 2:
+                required_attempt |= {"command", "wall_seconds"}
+            if set(raw) != required_attempt:
                 raise ValueError("Missing or unexpected execution fields")
+            if "command" in raw:
+                if not isinstance(raw["command"], list) or not all(isinstance(v, str) for v in raw["command"]):
+                    raise ValueError("Invalid exact command")
+                raw["command"] = tuple(raw["command"])
             attempt = Attempt(case=Case(**raw.pop("case")), **raw)
+            if attempt.wall_seconds is not None and (type(attempt.wall_seconds) not in (int, float)
+                    or not math.isfinite(attempt.wall_seconds) or attempt.wall_seconds < 0):
+                raise ValueError("Invalid wall time")
             if type(attempt.repetition) is not int or (attempt.case, attempt.repetition) != schedule[index]:
                 raise ValueError("History executions do not match the configured schedule")
             if not all(isinstance(value, str) for value in (attempt.stdout, attempt.stderr, attempt.launch_error)):
@@ -81,6 +99,11 @@ def atomic_write(path: Path, text: str) -> None:
             output.flush()
             os.fsync(output.fileno())
         temporary.replace(path)
+        directory_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
     finally:
         temporary.unlink(missing_ok=True)
 

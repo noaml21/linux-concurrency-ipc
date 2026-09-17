@@ -15,8 +15,11 @@ Branch: `v3/reliable-ipc-lab`. Never merge or release.
    fault-test` passed (12 C binaries, 4 parameterized fault tests); all 10 unchanged
    V2 execution/history tests passed; legacy CLI covered; diff scope checked.
    Design/audit and exact SIGKILL/OS scheduling limitations: V3_DESIGN.md.
-2. Measurement/history: pending. Bounded seeded matrices, warmups, provenance,
-   per-attempt durable checkpoints, explicit V2 history compatibility.
+2. Measurement/history: VERIFIED. `make test app release` passed; all 38 Python
+   tests including real UI passed; launcher passed. Real 32-execution ring matrix
+   completed with 24 accepted measured samples (8 warmups). Raw development
+   dataset and unavailable perf diagnostics committed; original V1 data untouched.
+   Schema 1 migration, active cancellation, checkpoints and seed bounds tested.
 3. Optimization: pending. Measure baseline, add bounded batched ring, compare.
 4. CI/docs/review: pending. Compiler/sanitizer jobs, real report, demo, study guide,
    exact-final-commit checks, push V3 only and create one draft PR to main.

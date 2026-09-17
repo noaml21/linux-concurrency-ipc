@@ -42,3 +42,5 @@ DataTable { background: #101d2b; border: round #304a60; }
 Footer { background: #163044; }
 
 #summary-hint { height: auto; color: #91a7ba; margin: 0 0 1 0; }
+
+.advanced-parameters { height: 4; }

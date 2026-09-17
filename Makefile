@@ -69,9 +69,11 @@ build/test_shm_ring: src/common/record.c src/common/validator.c src/common/timin
 
 build/linux-concurrency-ipc: src/main.c src/common/record.c src/common/validator.c src/common/io.c src/common/timing.c src/sync/process_unsafe.c src/sync/threads_mutex.c src/sync/processes_sem.c src/ipc/pipe.c src/ipc/fifo.c src/ipc/shm_mailbox.c src/ipc/shm_ring.c include/record.h include/validator.h include/io.h include/timing.h include/sync.h include/ipc.h src/common/runtime.c include/runtime.h | build
 	$(CC) $(CPPFLAGS) $(CFLAGS) -pthread src/main.c src/common/record.c src/common/validator.c src/common/io.c src/common/timing.c src/sync/process_unsafe.c src/sync/threads_mutex.c src/sync/processes_sem.c src/ipc/pipe.c src/ipc/fifo.c src/ipc/shm_mailbox.c src/ipc/shm_ring.c src/common/runtime.c -o $@
+	python3 scripts/build_info.py $@ "$(CC)" "$(CPPFLAGS) $(CFLAGS) -pthread"
 
 build/linux-concurrency-ipc-release: src/main.c src/common/record.c src/common/validator.c src/common/io.c src/common/timing.c src/sync/process_unsafe.c src/sync/threads_mutex.c src/sync/processes_sem.c src/ipc/pipe.c src/ipc/fifo.c src/ipc/shm_mailbox.c src/ipc/shm_ring.c include/record.h include/validator.h include/io.h include/timing.h include/sync.h include/ipc.h src/common/runtime.c include/runtime.h | build
 	$(CC) $(CPPFLAGS) $(CFLAGS) -O2 -pthread src/main.c src/common/record.c src/common/validator.c src/common/io.c src/common/timing.c src/sync/process_unsafe.c src/sync/threads_mutex.c src/sync/processes_sem.c src/ipc/pipe.c src/ipc/fifo.c src/ipc/shm_mailbox.c src/ipc/shm_ring.c src/common/runtime.c -o $@
+	python3 scripts/build_info.py $@ "$(CC)" "$(CPPFLAGS) $(CFLAGS) -O2 -pthread"
 
 build:
 	mkdir -p build
@@ -82,6 +84,7 @@ clean:
 # Fault hooks are absent from production builds.
 build/linux-concurrency-ipc-fault: $(wildcard src/common/*.c src/ipc/*.c src/sync/*.c include/*.h) src/main.c | build
 	$(CC) $(CPPFLAGS) $(CFLAGS) -DIPC_TESTING -pthread src/main.c src/common/*.c src/ipc/*.c src/sync/*.c -o $@
+	python3 scripts/build_info.py $@ "$(CC)" "$(CPPFLAGS) $(CFLAGS) -DIPC_TESTING -pthread"
 
 fault-test: build/linux-concurrency-ipc-fault
 	python3 -m unittest discover -s tests/reliability -v

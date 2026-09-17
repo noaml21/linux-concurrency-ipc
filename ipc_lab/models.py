@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+import random
 
 
 MODES = {
@@ -66,6 +67,12 @@ class Config:
     repetitions: int = 3
     capacity: int = 64
     sweep: tuple[int, ...] = ()
+    worker_matrix: tuple[int, ...] = ()
+    amount_matrix: tuple[int, ...] = ()
+    warmups: int = 0
+    seed: int = 2026
+    interleave: bool = False
+    deadline_ms: int = 30000
 
     def __post_init__(self) -> None:
         if self.family not in MODES:
@@ -86,20 +93,47 @@ class Config:
             raise ValueError("Sweep capacities must not be repeated")
         if self.sweep and "shm-ring" not in self.modes:
             raise ValueError("Select shm-ring to sweep capacity")
+        for values, name, maximum in ((self.worker_matrix, "Worker matrix", 32),
+                                      (self.amount_matrix, "Amount matrix", 100000)):
+            if not isinstance(values, tuple) or len(values) > 8 or len(set(values)) != len(values):
+                raise ValueError(f"{name} requires at most 8 distinct values")
+            for value in values:
+                bounded_integer(value, name, maximum)
+        if type(self.warmups) is not int or not 0 <= self.warmups <= 3:
+            raise ValueError("Warmups must be 0..3")
+        if type(self.seed) is not int or not 0 <= self.seed <= 2**32 - 1:
+            raise ValueError("Seed must be 0..2^32-1")
+        if type(self.interleave) is not bool:
+            raise ValueError("Interleave must be boolean")
+        bounded_integer(self.deadline_ms, "Deadline milliseconds", 120000)
         cases = self.cases()
-        if len(cases) * self.repetitions > 90:
+        if len(cases) * (self.repetitions + self.warmups) > 90:
             raise ValueError("Limit the experiment to 90 executions")
-        if self.workers * self.amount * len(cases) * self.repetitions > 5_000_000:
+        if sum(c.workers * c.amount for c in cases) * (self.repetitions + self.warmups) > 5_000_000:
             raise ValueError("Limit the experiment to 5,000,000 total items")
 
     def cases(self) -> tuple[Case, ...]:
         cases = []
         for mode in self.modes:
             capacities = (self.sweep or (self.capacity,)) if mode == "shm-ring" else (None,)
-            cases.extend(Case(self.family, mode, self.workers, self.amount, cap)
+            cases.extend(Case(self.family, mode, workers, amount, cap)
+                         for workers in (self.worker_matrix or (self.workers,))
+                         for amount in (self.amount_matrix or (self.amount,))
                          for cap in capacities)
         return tuple(cases)
 
     @property
     def total(self) -> int:
-        return len(self.cases()) * self.repetitions
+        return len(self.cases()) * (self.repetitions + self.warmups)
+
+    def schedule(self) -> tuple[tuple[Case, int], ...]:
+        rng = random.Random(self.seed)
+        schedule = []
+        if not self.interleave:
+            return tuple((case, rep) for case in self.cases()
+                         for rep in (*range(-self.warmups, 0), *range(1, self.repetitions + 1)))
+        for rep in (*range(-self.warmups, 0), *range(1, self.repetitions + 1)):
+            block = list(self.cases())
+            rng.shuffle(block)
+            schedule.extend((case, rep) for case in block)
+        return tuple(schedule)

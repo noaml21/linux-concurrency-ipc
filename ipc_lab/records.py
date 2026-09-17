@@ -3,6 +3,8 @@
 import hashlib
 import os
 import platform
+import json
+import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,12 +20,36 @@ def utc_now() -> str:
 
 
 def environment(binary: Path) -> dict[str, str]:
-    return {
+    result = {
         "system": platform.system(), "release": platform.release(),
         "machine": platform.machine(), "cpu_count": str(os.cpu_count()),
         "python": platform.python_version(), "engine": binary.name,
         "engine_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
     }
+
+    root = binary.parent.parent
+    def git(*args: str) -> str:
+        try:
+            return subprocess.check_output(["git", "-C", str(root), *args],
+                                           text=True, stderr=subprocess.DEVNULL, timeout=3).strip()
+        except (OSError, subprocess.SubprocessError):
+            return "unavailable"
+    result["source_commit"] = git("rev-parse", "HEAD")
+    state = git("status", "--porcelain", "--untracked-files=normal")
+    result["source_dirty"] = "unavailable" if state == "unavailable" else str(bool(state)).lower()
+    result["cpu_model"] = next((line.split(":", 1)[1].strip()
+                                for line in Path("/proc/cpuinfo").read_text().splitlines()
+                                if line.startswith("model name")), "unavailable")
+    result["cpu_affinity"] = ",".join(map(str, sorted(os.sched_getaffinity(0))))
+    result.update(compiler="unavailable", compiler_flags="unavailable",
+                  build_commit="unavailable", build_dirty="unavailable")
+    manifest = binary.with_suffix(".build.json")
+    if manifest.is_file():
+        data = json.loads(manifest.read_text())
+        if data.get("engine_sha256") == result["engine_sha256"]:
+            for key in ("compiler", "compiler_flags", "build_commit", "build_dirty"):
+                result[key] = str(data[key])
+    return result
 
 
 @dataclass(frozen=True)
@@ -34,6 +60,8 @@ class Attempt:
     stderr: str = ""
     returncode: int | None = None
     launch_error: str = ""
+    command: tuple[str, ...] = ()
+    wall_seconds: float | None = None
 
     @property
     def error(self) -> str:
@@ -82,7 +110,7 @@ class Run:
     def summaries(self) -> list[Summary]:
         summaries = []
         for case in self.config.cases():
-            attempts = [a for a in self.attempts if a.case == case]
+            attempts = [a for a in self.attempts if a.case == case and a.repetition > 0]
             measurements = [a.measurement for a in attempts]
             summaries.append(summarize(case, [m for m in measurements if m is not None],
                                        sum(m is None for m in measurements)))

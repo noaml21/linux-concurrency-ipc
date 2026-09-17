@@ -89,3 +89,38 @@ resource/validator allocation, final validator scan and final resource destructi
 This is a **worker-lifecycle interval**, not steady state or full end-to-end time.
 No per-record latency is instrumented. V3 cancellation checks have measurable cost;
 comparisons must use the same build and validation settings.
+
+## Experiment protocol and durability
+
+The lab bounds a matrix to 90 executions, 5 million aggregate items, 200,000
+items/execution, 32 workers, 8 values per dimension, 15 measured repetitions and
+0..3 warmups. Scheduling stops after 600 seconds between executions; the last
+execution still gets its configured <=120-second deadline and cleanup grace.
+The demo CLI uses a 5-second execution deadline. Runs execute serially.
+
+Interleaving shuffles each repetition block with a private recorded PRNG seed;
+all warmup blocks precede measured blocks. Ordered V2 scheduling remains the UI
+default for compatibility; enable the checkbox for randomized comparisons.
+Warmups have negative repetition numbers, remain in raw history and contribute
+failure status, but never contribute throughput summaries. End-to-end wall time
+includes Python process launch/drain; it is distinct from the engine interval.
+
+Schema 2 adds matrix/schedule/deadline configuration, command and wall time, build
+provenance, source commit/dirty state, CPU model/affinity. Schema 1 is explicitly
+migrated on read with ordered scheduling and no warmups; original files are not
+rewritten until explicitly saved. Recovered partial sessions are INCOMPLETE,
+not silently replayed. Completed attempts can be exported without rerunning them.
+
+The runner checkpoints an initial incomplete run, every completed attempt and the
+final state. Writes fsync the temporary file, atomically replace, then fsync the
+parent directory. A crash during a case loses that case, retaining prior completed
+measurements. UI save errors are shown and results retained for manual retry.
+Disk failure/power loss can exceed filesystem guarantees. Python's emergency owner
+watchdog marks failure and warns cleanup is not guaranteed; ordinary cancellation
+always first asks the C owner to stop and reap its own children.
+
+The pre-optimization baseline is `docs/data/v3-ring-baseline.json`: this development
+build was honestly recorded dirty. The local i5-12450H showed wide spread and lower
+throughput with capacity 2 than 64. Per-record semaphore calls are a plausible
+batching target, not an established hardware bottleneck: perf was denied by the
+existing kernel policy (recorded in `v3-perf-probe.json`; no settings changed).

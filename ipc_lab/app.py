@@ -77,7 +77,18 @@ class LabApp(App):
                                 yield Input(value, id=ident, select_on_focus=True)
                     yield Checkbox("Sweep shm-ring capacity", id="sweep")
                     yield Input(", ".join(map(str, RING_CAPACITIES)), id="capacities", disabled=True)
-                    yield Static("Limits: 32 workers, 200,000 items per execution, 15 repetitions; 5M items per experiment.\nCancellation finishes the active execution so the engine can clean up.", classes="hint")
+                    with Horizontal(classes="advanced-parameters"):
+                        for label, value, ident in (("Warmups (0..3)", "0", "warmups"),
+                                                    ("Seed", "2026", "seed"),
+                                                    ("Deadline ms", "30000", "deadline")):
+                            with Vertical(classes="parameter"):
+                                yield Label(label)
+                                yield Input(value, id=ident, select_on_focus=True)
+                    yield Checkbox("Randomize/interleave with recorded seed", id="interleave")
+                    yield Label("Optional matrices: comma-separated worker counts / item counts")
+                    yield Input("", placeholder="Worker counts, e.g. 1, 2, 4", id="worker-matrix")
+                    yield Input("", placeholder="Item counts, e.g. 100, 2000", id="amount-matrix")
+                    yield Static("Limits: 32 workers, 200,000 items per execution, 15 repetitions; 5M items per experiment.\nCancellation asks the C owner to stop and clean up. Completed measurements are checkpointed.", classes="hint")
                 yield Static("Ready · default workload runs all four IPC mechanisms.", id="validation", markup=False)
                 with Horizontal(classes="actions"):
                     yield Button("Run experiment", variant="primary", id="run")
@@ -88,7 +99,7 @@ class LabApp(App):
                 yield RichLog(id="events", wrap=True, markup=False, highlight=False)
                 yield Static("Progress counts completed executions; the C CLI reports only when a case finishes.", classes="hint")
                 with Horizontal(classes="actions"):
-                    yield Button("Cancel after current", variant="warning", id="cancel", disabled=True)
+                    yield Button("Cancel run", variant="warning", id="cancel", disabled=True)
             with TabPane("Results", id="results"):
                 with VerticalScroll():
                     yield Static("No experiment yet. Configure a run or open one from History.", id="result-title", markup=False)
@@ -157,7 +168,12 @@ class LabApp(App):
         return Config(family, tuple(mode for mode in MODES[family] if mode in selected),
                       number("workers", 32), number("amount", 100000),
                       number("repetitions", 15), number("capacity", 32767) if family == "ipc" else 64,
-                      sweep)
+                      sweep,
+                      tuple(parse_integer(v, "Worker matrix", 32) for v in self.query_one("#worker-matrix", Input).value.split(",") if v.strip()),
+                      tuple(parse_integer(v, "Amount matrix", 100000) for v in self.query_one("#amount-matrix", Input).value.split(",") if v.strip()),
+                      number("warmups", 3) if self.query_one("#warmups", Input).value.strip() != "0" else 0,
+                      number("seed", 999999999) if self.query_one("#seed", Input).value.strip() != "0" else 0,
+                      self.query_one("#interleave", Checkbox).value, number("deadline", 120000))
 
     @on(Button.Pressed, "#run")
     def action_start(self) -> None:
@@ -187,7 +203,14 @@ class LabApp(App):
     @work
     async def perform_run(self, config: Config) -> None:
         try:
-            run = await run_experiment(config, self.binary, self.cancel_event, self.progress_changed)
+            def checkpoint(run):
+                try:
+                    self.history.save(run)
+                except (OSError, ValueError) as error:
+                    # Continue retaining measurements in memory, expose the failure.
+                    self.call_from_thread(self.checkpoint_failed, run, str(error))
+            run = await run_experiment(config, self.binary, self.cancel_event,
+                                       self.progress_changed, checkpoint)
             self.show_results(run)
             try:
                 path = await asyncio.to_thread(self.history.save, run)
@@ -211,6 +234,11 @@ class LabApp(App):
             if self.quit_pending:
                 self.exit()
 
+    def checkpoint_failed(self, run: Run, error: str) -> None:
+        self.current = run
+        self.last_error = f"Checkpoint failed: {error}; results retained in memory"
+        self.query_one("#events", RichLog).write(Text(self.last_error))
+
     def progress_changed(self, event: Progress) -> None:
         run = event.run
         if event.phase == "started":
@@ -229,7 +257,7 @@ class LabApp(App):
         if not self.running or not self.current_case_label:
             return
         elapsed = time.monotonic() - self.current_case_started
-        suffix = "Cancellation requested · finishing current execution safely." if self.cancel_event.is_set() else "Waiting for the C engine's result."
+        suffix = "Cancellation requested · C owner is stopping and cleaning up." if self.cancel_event.is_set() else "Waiting for the C engine's result."
         if elapsed > 30:
             suffix += " Longer than usual; engine is still running."
         self.query_one("#live-current", Static).update(f"{self.current_case_label}\nElapsed {elapsed:.0f}s · {suffix}")
