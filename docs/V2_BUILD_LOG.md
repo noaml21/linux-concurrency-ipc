@@ -12,3 +12,16 @@
   no tracked modifications. The supplied untracked `AGENTS.md` is included
   unchanged as the repository's development policy.
 - Added `docs/V2_PLAN.md`. No engine, V1 script, or baseline data changes.
+
+## Milestone 1 — experiment core
+
+- Added immutable bounded configurations, explicit argument construction, and
+  ring-capacity sweep expansion in `ipc_lab/models.py`.
+- Added strict output parsing, metadata/counter consistency checks, separate
+  PASS/FAIL/RACY interpretation, and statistics that exclude incorrect samples.
+- `python3 -m unittest discover -s tests/lab -v`: 10 tests passed, including
+  injection-like inputs, malformed/nonfinite output, statistics and sweeps.
+- `make test`: all 11 C tests passed. A real shm-ring CLI case (2 × 100,
+  capacity 8) passed with all correctness counters zero.
+- Reviewed staged scope and whitespace: only the new Python core/tests and this
+  log changed; the C engine and V1 scripts/data remain untouched.
