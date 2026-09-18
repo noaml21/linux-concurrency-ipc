@@ -25,9 +25,10 @@ Branch: `v3/reliable-ipc-lab`. Never merge or release.
    capacity 64, wraparound, partial batches and fault cleanup. All 40 Python/UI
    tests passed. An 80-execution development comparison completed; cap-64 batch-8
    medians were higher, cap-2 results mixed. Final clean-build dataset completed; see V3_PERFORMANCE.md.
-4. CI/docs/review: local implementation/report VERIFIED. Compiler/sanitizer jobs,
-   design, real report, demo and study guide complete. Exact-final-commit checks,
-   push V3 only, draft PR and remote CI inspection remain before handoff.
+4. CI/docs/review: VERIFIED at `ae4515e`. Full local clean verification and all
+   five GitHub jobs passed for both push and PR events. Draft PR #2 exists; V2
+   PR #1 is untouched. This final checkpoint update changes documentation only.
+   Exact latest-HEAD verification results are maintained in the PR (see below).
 
 ## Resume
 
@@ -49,8 +50,8 @@ must be explicit. Preserve original V1 datasets and V2 checkout.
   V3 tests then passed (42 total tests now). Clang unavailable locally; CI pending.
 - README, resource/protocol design, five-minute demo and AI-transparent study guide
   updated. V1 raw/summary CSVs and V1 benchmark/stress scripts have no diff.
-- Remaining: clean-commit measurement/report, final exact-commit full verification,
-  push only V3, one draft PR, inspect/fix remote CI. Do not report completion yet.
+- This earlier review checkpoint was completed by the measurement and handoff
+  verification recorded below; no implementation work remains from that list.
 
 
 ## Resumption verification and final measurements
@@ -65,8 +66,53 @@ must be explicit. Preserve original V1 datasets and V2 checkout.
   Data: `docs/data/v3-comparison.json` and CSV; report: `docs/V3_PERFORMANCE.md`.
   Effective batch 8 at capacity 64: median ratios 1.83..3.08; capacity 2: 0.85..1.04.
   Both source/build dirty flags false. perf remained unavailable; diagnostics saved.
-- Next: commit report/checkpoint, verify exact resulting HEAD with clean C/release,
-  stress, fault, sanitizer and all Python/UI tests plus launcher/CLI. Push explicitly
-  `git push -u origin HEAD:refs/heads/v3/reliable-ipc-lab`. Create one DRAFT PR to main,
-  explaining V2 inclusion and linking V2-to-V3 diff; inspect/fix all CI. Record final
-  exact-HEAD outcomes in the PR/handoff. No merge, tag or release.
+- Report/data committed as `ae4515ee45e38076ec9279c0f0c8f11eeb4efac2`.
+  Full exact-commit local verification passed: `make clean`, `make test app release`
+  (13 C binaries), all 11 stress cases, `make fault-test` (4 methods / 54 scenarios),
+  all 42 Python/UI tests (47.738 seconds), launcher + legacy/batch CLI checks,
+  `make sanitizer-test` (12 safe-mode C binaries, GCC ASan/UBSan), diff checks.
+- Pushed only V3 and opened [draft PR #2](https://github.com/noaml21/linux-concurrency-ipc/pull/2)
+  targeting main. Existing V2 PR #1 and original V2 worktree remain unchanged.
+- Inspected successful GitHub runs on `ae4515e`:
+  [push](https://github.com/noaml21/linux-concurrency-ipc/actions/runs/35327963459),
+  [PR](https://github.com/noaml21/linux-concurrency-ipc/actions/runs/35327964457).
+  Both passed GCC/Clang build+fault+stress, GCC/Clang ASan+UBSan, and Python/UI.
+  No CI failure or skipped/unavailable CI job was observed. Local Clang was absent;
+  remote Clang verification is real and passed.
+
+## Draft handoff and exact-HEAD verification
+
+- [Branch](https://github.com/noaml21/linux-concurrency-ipc/tree/v3/reliable-ipc-lab)
+- [Draft PR and latest verification record](https://github.com/noaml21/linux-concurrency-ipc/pull/2)
+- [V3-only diff](https://github.com/noaml21/linux-concurrency-ipc/compare/v2/interactive-benchmark-lab...v3/reliable-ipc-lab)
+
+The PR includes V2 because main still lacks it. Do not merge, enable auto-merge,
+modify V2/main, tag or release. Performance and cleanup limitations are documented
+in V3_PERFORMANCE.md and V3_DESIGN.md; perf was unavailable, not fabricated.
+
+This checkpoint-only commit must also receive exact-HEAD verification before the
+final response. Its results are recorded in the PR rather than making another
+self-changing checkpoint commit. If interrupted, read `git status`, current HEAD,
+`build/verified-commit.txt`, `build/final-verification.log`, and the PR head/checks.
+Do not rerun completed engineering. If the log matches HEAD and all latest-HEAD CI
+checks succeeded, the authorized task is complete at the draft PR handoff.
+Otherwise finish only the missing checks, fix concrete failures, and update PR #2.
+
+Verification command sequence (from this worktree):
+
+```sh
+make clean
+make test app release
+python3 scripts/stress.py
+make fault-test
+.venv/bin/python -m unittest discover -s tests/lab -v
+./scripts/explore --check
+make sanitizer-test
+git diff --check
+```
+
+Keep the final commit's local logs under ignored `build/`; PR body working copy is
+`results/lab/v3-pr-body.md`. If another push is necessary, use only
+`git push origin HEAD:refs/heads/v3/reliable-ipc-lab`. Inspect both push and PR checks
+for the latest head. Final user handoff remains Hebrew with branch/PR/commit links,
+actual tests/CI, measured conclusions, limitations and local demo commands.
