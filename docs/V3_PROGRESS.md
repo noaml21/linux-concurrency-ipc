@@ -24,9 +24,10 @@ Branch: `v3/reliable-ipc-lab`. Never merge or release.
    `make test app release fault-test` passed, including all batch sizes through
    capacity 64, wraparound, partial batches and fault cleanup. All 40 Python/UI
    tests passed. An 80-execution development comparison completed; cap-64 batch-8
-   medians were higher, cap-2 results mixed. Final clean-build dataset pending.
-4. CI/docs/review: pending. Compiler/sanitizer jobs, real report, demo, study guide,
-   exact-final-commit checks, push V3 only and create one draft PR to main.
+   medians were higher, cap-2 results mixed. Final clean-build dataset completed; see V3_PERFORMANCE.md.
+4. CI/docs/review: local implementation/report VERIFIED. Compiler/sanitizer jobs,
+   design, real report, demo and study guide complete. Exact-final-commit checks,
+   push V3 only, draft PR and remote CI inspection remain before handoff.
 
 ## Resume
 
@@ -50,3 +51,22 @@ must be explicit. Preserve original V1 datasets and V2 checkout.
   updated. V1 raw/summary CSVs and V1 benchmark/stress scripts have no diff.
 - Remaining: clean-commit measurement/report, final exact-commit full verification,
   push only V3, one draft PR, inspect/fix remote CI. Do not report completion yet.
+
+
+## Resumption verification and final measurements
+
+- Resumed without changing prior work: clean `46e479a`, original V2 PR #1 still
+  untouched; remote V3 branch did not yet exist. Read task/instructions again.
+- The interrupted clean verification had finished: `make clean`, `make test`,
+  `make release`, all 11 stress cases PASS, and all 42 Python/UI tests PASS
+  (`build/clean-python.log`, 46.078 seconds). No need to repeat those for measurement.
+- Clean source/build `46e479a2de040afe15fb0e8029264b105bae3c85` measured with seed
+  2026, 16 cases, 1 warmup + 4 measured repetitions = 80 successful executions.
+  Data: `docs/data/v3-comparison.json` and CSV; report: `docs/V3_PERFORMANCE.md`.
+  Effective batch 8 at capacity 64: median ratios 1.83..3.08; capacity 2: 0.85..1.04.
+  Both source/build dirty flags false. perf remained unavailable; diagnostics saved.
+- Next: commit report/checkpoint, verify exact resulting HEAD with clean C/release,
+  stress, fault, sanitizer and all Python/UI tests plus launcher/CLI. Push explicitly
+  `git push -u origin HEAD:refs/heads/v3/reliable-ipc-lab`. Create one DRAFT PR to main,
+  explaining V2 inclusion and linking V2-to-V3 diff; inspect/fix all CI. Record final
+  exact-HEAD outcomes in the PR/handoff. No merge, tag or release.
