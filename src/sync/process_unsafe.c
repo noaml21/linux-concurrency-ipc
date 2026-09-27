@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "timing.h"
+#include "runtime.h"
 
 bool sync_run_process_unsafe(
     const sync_config_t *config,
@@ -40,6 +41,10 @@ bool sync_run_process_unsafe(
     if (config->operations_per_worker > UINT64_MAX / config->workers) {
         return false;
     }
+    if (!runtime_begin(config->workers)) {
+        return false;
+    }
+
     expected = (uint64_t) config->workers * config->operations_per_worker;
 
     counter = mmap(
@@ -61,7 +66,7 @@ bool sync_run_process_unsafe(
     }
 
     for (uint32_t worker = 0; worker < config->workers; ++worker) {
-        pid_t child = fork();
+        pid_t child = runtime_fork();
 
         if (child < 0) {
             succeeded = false;
@@ -72,6 +77,10 @@ bool sync_run_process_unsafe(
             for (uint64_t operation = 0;
                  operation < config->operations_per_worker;
                  ++operation) {
+                if (runtime_cancelled()) {
+                    _exit(1);
+                }
+                runtime_child_fault();
                 uint64_t value = *counter;
 
                 *counter = value + 1;
@@ -87,7 +96,7 @@ bool sync_run_process_unsafe(
         pid_t waited;
 
         do {
-            waited = waitpid(-1, &status, 0);
+            waited = runtime_wait(&status, 0);
         } while (waited < 0 && errno == EINTR);
 
         if (waited < 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
@@ -113,5 +122,5 @@ bool sync_run_process_unsafe(
         return false;
     }
 
-    return succeeded;
+    return succeeded && !runtime_cancelled();
 }

@@ -16,6 +16,7 @@
 #include "io.h"
 #include "record.h"
 #include "timing.h"
+#include "runtime.h"
 
 _Static_assert(
     sizeof(record_t) <= PIPE_BUF,
@@ -58,6 +59,10 @@ bool ipc_run_fifo(
         return false;
     }
 
+    if (!runtime_begin(config->producers)) {
+        return false;
+    }
+
     if (!validator_init(
             &validator,
             config->producers,
@@ -89,6 +94,9 @@ bool ipc_run_fifo(
         return false;
     }
 
+#ifdef IPC_TESTING
+    fprintf(stderr, "owned_fifo=%s\n", fifo_path);
+#endif
     bootstrap_fd = open(fifo_path, O_RDWR);
     if (bootstrap_fd < 0) {
         unlink(fifo_path);
@@ -116,7 +124,7 @@ bool ipc_run_fifo(
     }
 
     for (uint32_t producer = 0; producer < config->producers; ++producer) {
-        pid_t child = fork();
+        pid_t child = runtime_fork();
 
         if (child < 0) {
             succeeded = false;
@@ -145,6 +153,7 @@ bool ipc_run_fifo(
             for (uint64_t sequence = 0;
                  sequence < config->records_per_producer;
                  ++sequence) {
+                runtime_child_fault();
                 record_t produced = record_make(producer, sequence);
 
                 if (!write_all(write_fd, &produced, sizeof(produced))) {
@@ -166,7 +175,8 @@ bool ipc_run_fifo(
         succeeded = false;
     }
 
-    for (;;) {
+    while (succeeded && !runtime_cancelled()) {
+        runtime_consumer_delay();
         io_read_result_t read_result = read_full_or_eof(
             read_fd,
             &record,
@@ -193,7 +203,7 @@ bool ipc_run_fifo(
         pid_t waited;
 
         do {
-            waited = waitpid(-1, &status, 0);
+            waited = runtime_wait(&status, 0);
         } while (waited < 0 && errno == EINTR);
 
         if (waited < 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
@@ -227,5 +237,5 @@ bool ipc_run_fifo(
     }
 
     validator_destroy(&validator);
-    return succeeded;
+    return succeeded && !runtime_cancelled();
 }

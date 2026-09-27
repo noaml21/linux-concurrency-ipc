@@ -43,4 +43,11 @@ bool ipc_run_shm_ring(
     ipc_result_t *result
 );
 
+/* Producer batches reserve/publish atomically; capacity counts records, not batches. */
+bool ipc_run_shm_ring_batch(
+    const ipc_ring_config_t *config,
+    uint32_t batch_size,
+    ipc_result_t *result
+);
+
 #endif

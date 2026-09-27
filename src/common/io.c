@@ -3,6 +3,8 @@
 #include <errno.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <poll.h>
+#include "runtime.h"
 
 bool write_all(int fd, const void *buffer, size_t size) {
     const unsigned char *current = buffer;
@@ -13,6 +15,9 @@ bool write_all(int fd, const void *buffer, size_t size) {
     }
 
     while (remaining > 0) {
+        if (!runtime_ready(fd, POLLOUT)) {
+            return false;
+        }
         ssize_t written = write(fd, current, remaining);
 
         if (written < 0) {
@@ -42,6 +47,9 @@ bool read_full(int fd, void *buffer, size_t size) {
     }
 
     while (remaining > 0) {
+        if (!runtime_ready(fd, POLLIN)) {
+            return false;
+        }
         ssize_t bytes_read = read(fd, current, remaining);
 
         if (bytes_read < 0) {
@@ -75,6 +83,9 @@ io_read_result_t read_full_or_eof(
     }
 
     while (remaining > 0) {
+        if (!runtime_ready(fd, POLLIN)) {
+            return IO_READ_ERROR;
+        }
         ssize_t bytes_read = read(fd, current, remaining);
 
         if (bytes_read < 0) {

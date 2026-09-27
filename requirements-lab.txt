@@ -1,0 +1,2 @@
+# The C CLI and V1 scripts do not require this optional UI dependency.
+textual==8.2.8

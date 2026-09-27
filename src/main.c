@@ -9,11 +9,13 @@
 
 #include "ipc.h"
 #include "sync.h"
+#include "runtime.h"
 
 static void print_usage(FILE *stream, const char *program_name) {
     fprintf(
         stream,
-        "Usage:\n"
+        "Batched mode: ipc shm-ring-batch <producers> <records> <capacity> <batch_size>\n"
+        "Usage (optional suffix: --deadline-ms 1..120000; default 30000):\n"
         "  %s --help\n"
         "  %s sync process-unsafe <workers> <operations_per_worker>\n"
         "  %s sync threads-mutex <workers> <operations_per_worker>\n"
@@ -111,7 +113,7 @@ static int run_sync_command(
     }
 
     if (!succeeded) {
-        fprintf(stderr, "error: synchronization experiment failed\n");
+        fprintf(stderr, "error: synchronization experiment failed: %s\n", runtime_reason());
         return 1;
     }
 
@@ -147,6 +149,7 @@ static void print_ipc_result(
     uint64_t records_per_producer,
     bool include_capacity,
     uint32_t capacity,
+    uint32_t batch_size,
     const ipc_result_t *result
 ) {
     printf(
@@ -159,6 +162,10 @@ static void print_ipc_result(
 
     if (include_capacity) {
         printf(" capacity=%" PRIu32, capacity);
+    }
+
+    if (batch_size > 0) {
+        printf(" batch_size=%" PRIu32, batch_size);
     }
 
     printf(
@@ -186,19 +193,21 @@ static int run_ipc_command(
     const char *mode,
     uint32_t producers,
     uint64_t records_per_producer,
-    uint32_t capacity
+    uint32_t capacity,
+    uint32_t batch_size
 ) {
     ipc_result_t result;
     bool succeeded;
 
-    if (strcmp(mode, "shm-ring") == 0) {
+    if (strcmp(mode, "shm-ring") == 0 || strcmp(mode, "shm-ring-batch") == 0) {
         const ipc_ring_config_t config = {
             producers,
             records_per_producer,
             capacity
         };
 
-        succeeded = ipc_run_shm_ring(&config, &result);
+        succeeded = batch_size ? ipc_run_shm_ring_batch(&config, batch_size, &result)
+                               : ipc_run_shm_ring(&config, &result);
     } else {
         const ipc_config_t config = {producers, records_per_producer};
 
@@ -212,7 +221,7 @@ static int run_ipc_command(
     }
 
     if (!succeeded) {
-        fprintf(stderr, "error: IPC experiment failed\n");
+        fprintf(stderr, "error: IPC experiment failed: %s\n", runtime_reason());
         return 1;
     }
 
@@ -220,14 +229,26 @@ static int run_ipc_command(
         mode,
         producers,
         records_per_producer,
-        strcmp(mode, "shm-ring") == 0,
+        strcmp(mode, "shm-ring") == 0 || batch_size > 0,
         capacity,
+        batch_size,
         &result
     );
-    return 0;
+    return result.validation.pass ? 0 : 1;
 }
 
 int main(int argc, char **argv) {
+    uint32_t deadline = 30000;
+    if (argc >= 3 && strcmp(argv[argc - 2], "--deadline-ms") == 0) {
+        if (!parse_uint32_positive(argv[argc - 1], &deadline)) {
+            return 2;
+        }
+        argc -= 2;
+    }
+    if (!runtime_configure(deadline)) {
+        fprintf(stderr, "error: deadline must be 1..120000 milliseconds\n");
+        return 2;
+    }
     if (argc == 2 && strcmp(argv[1], "--help") == 0) {
         print_usage(stdout, argv[0]);
         return 0;
@@ -256,18 +277,22 @@ int main(int argc, char **argv) {
         uint32_t producers;
         uint64_t records_per_producer;
         uint32_t capacity = 0;
+        uint32_t batch_size = 0;
+        bool batched = argc >= 3 && strcmp(argv[2], "shm-ring-batch") == 0;
 
         if (argc < 3 ||
             (strcmp(argv[2], "pipe") != 0 &&
              strcmp(argv[2], "fifo") != 0 &&
              strcmp(argv[2], "shm-mailbox") != 0 &&
-             strcmp(argv[2], "shm-ring") != 0) ||
+             strcmp(argv[2], "shm-ring") != 0 && !batched) ||
             (strcmp(argv[2], "shm-ring") == 0 && argc != 6) ||
-            (strcmp(argv[2], "shm-ring") != 0 && argc != 5) ||
+            (batched && argc != 7) ||
+            (!batched && strcmp(argv[2], "shm-ring") != 0 && argc != 5) ||
             !parse_uint32_positive(argv[3], &producers) ||
             !parse_uint64_positive(argv[4], &records_per_producer) ||
-            (strcmp(argv[2], "shm-ring") == 0 &&
-             !parse_uint32_positive(argv[5], &capacity))) {
+            ((strcmp(argv[2], "shm-ring") == 0 || batched) &&
+             !parse_uint32_positive(argv[5], &capacity)) ||
+            (batched && !parse_uint32_positive(argv[6], &batch_size))) {
             print_usage(stderr, argv[0]);
             return 2;
         }
@@ -276,7 +301,8 @@ int main(int argc, char **argv) {
             argv[2],
             producers,
             records_per_producer,
-            capacity
+            capacity,
+            batch_size
         );
     }
 

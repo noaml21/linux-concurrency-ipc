@@ -1,0 +1,852 @@
+{
+  "schema_version": 2,
+  "config": {
+    "family": "ipc",
+    "modes": [
+      "shm-ring"
+    ],
+    "workers": 2,
+    "amount": 2000,
+    "repetitions": 3,
+    "capacity": 64,
+    "sweep": [
+      2,
+      64
+    ],
+    "worker_matrix": [
+      1,
+      2
+    ],
+    "amount_matrix": [
+      100,
+      2000
+    ],
+    "warmups": 1,
+    "seed": 2026,
+    "interleave": true,
+    "deadline_ms": 5000
+  },
+  "system": {
+    "system": "Linux",
+    "release": "7.0.0-31-generic",
+    "machine": "x86_64",
+    "cpu_count": "12",
+    "python": "3.12.3",
+    "engine": "linux-concurrency-ipc-release",
+    "engine_sha256": "14f2d905298ab0c6814b5ba50850cfad0c439c6ea55451bda24c6ce9664a4ae4",
+    "source_commit": "d1771c56a766f7dfc46ffd115aaee93eb66eb665",
+    "source_dirty": "true",
+    "cpu_model": "12th Gen Intel(R) Core(TM) i5-12450H",
+    "cpu_affinity": "0,1,2,3,4,5,6,7,8,9,10,11",
+    "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "compiler_flags": "-Iinclude -std=c11 -Wall -Wextra -Werror -pedantic -O2 -pthread",
+    "build_commit": "d1771c56a766f7dfc46ffd115aaee93eb66eb665",
+    "build_dirty": "true"
+  },
+  "run_id": "d87478f8ee41484cb8c418067c1c238d",
+  "started": "2026-09-17T21:41:29.106177+00:00",
+  "finished": "2026-09-17T21:41:29.852013+00:00",
+  "cancelled": false,
+  "attempts": [
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 2000,
+        "capacity": 2
+      },
+      "repetition": -1,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=2000 capacity=2 expected=4000 received=4000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.037696 records_per_second=106113.394259\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "2000",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.04061193599773105
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 2000,
+        "capacity": 64
+      },
+      "repetition": -1,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=2000 capacity=64 expected=4000 received=4000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.036700 records_per_second=108992.030530\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "2000",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.03940752299968153
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 2000,
+        "capacity": 64
+      },
+      "repetition": -1,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=2000 capacity=64 expected=2000 received=2000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.012494 records_per_second=160082.974207\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "2000",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.015199395998934051
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 100,
+        "capacity": 2
+      },
+      "repetition": -1,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=100 capacity=2 expected=100 received=100 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.002776 records_per_second=36019.668180\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "100",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.0056960040019475855
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 100,
+        "capacity": 64
+      },
+      "repetition": -1,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=100 capacity=64 expected=200 received=200 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.003357 records_per_second=59582.771642\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "100",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.005773013999714749
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 100,
+        "capacity": 2
+      },
+      "repetition": -1,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=100 capacity=2 expected=200 received=200 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.005171 records_per_second=38679.624599\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "100",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.008140848000039114
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 2000,
+        "capacity": 2
+      },
+      "repetition": -1,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=2000 capacity=2 expected=2000 received=2000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.023864 records_per_second=83806.715566\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "2000",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.026734139002655866
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 100,
+        "capacity": 64
+      },
+      "repetition": -1,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=100 capacity=64 expected=100 received=100 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.001880 records_per_second=53189.112827\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "100",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.004341876003309153
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 100,
+        "capacity": 64
+      },
+      "repetition": 1,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=100 capacity=64 expected=200 received=200 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.002878 records_per_second=69500.624116\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "100",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.0055182489995786455
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 2000,
+        "capacity": 2
+      },
+      "repetition": 1,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=2000 capacity=2 expected=2000 received=2000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.016610 records_per_second=120409.174457\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "2000",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.018909611000708537
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 100,
+        "capacity": 2
+      },
+      "repetition": 1,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=100 capacity=2 expected=100 received=100 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.002108 records_per_second=47430.342613\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "100",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.0042281200003344566
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 100,
+        "capacity": 64
+      },
+      "repetition": 1,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=100 capacity=64 expected=100 received=100 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.001935 records_per_second=51686.397949\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "100",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.004624000997864641
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 2000,
+        "capacity": 64
+      },
+      "repetition": 1,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=2000 capacity=64 expected=2000 received=2000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.008203 records_per_second=243810.296572\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "2000",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.011010925998562016
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 100,
+        "capacity": 2
+      },
+      "repetition": 1,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=100 capacity=2 expected=200 received=200 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.003499 records_per_second=57157.799825\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "100",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.006091747000027681
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 2000,
+        "capacity": 2
+      },
+      "repetition": 1,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=2000 capacity=2 expected=4000 received=4000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.040558 records_per_second=98624.263033\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "2000",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.04331905800063396
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 2000,
+        "capacity": 64
+      },
+      "repetition": 1,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=2000 capacity=64 expected=4000 received=4000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.021391 records_per_second=186991.855476\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "2000",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.024241702998551773
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 100,
+        "capacity": 2
+      },
+      "repetition": 2,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=100 capacity=2 expected=200 received=200 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.003636 records_per_second=55012.293872\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "100",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.006435961000534007
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 2000,
+        "capacity": 64
+      },
+      "repetition": 2,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=2000 capacity=64 expected=4000 received=4000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.018395 records_per_second=217453.869608\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "2000",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.021118454002134968
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 2000,
+        "capacity": 2
+      },
+      "repetition": 2,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=2000 capacity=2 expected=4000 received=4000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.036754 records_per_second=108832.494248\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "2000",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.03967141199973412
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 100,
+        "capacity": 64
+      },
+      "repetition": 2,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=100 capacity=64 expected=200 received=200 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.002807 records_per_second=71259.533635\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "100",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.005045333997259149
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 2000,
+        "capacity": 64
+      },
+      "repetition": 2,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=2000 capacity=64 expected=2000 received=2000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.011718 records_per_second=170675.594593\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "2000",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.01423599899862893
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 100,
+        "capacity": 2
+      },
+      "repetition": 2,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=100 capacity=2 expected=100 received=100 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.002150 records_per_second=46522.165718\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "100",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.004215689998090966
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 2000,
+        "capacity": 2
+      },
+      "repetition": 2,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=2000 capacity=2 expected=2000 received=2000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.021558 records_per_second=92772.653145\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "2000",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.023984823001228506
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 100,
+        "capacity": 64
+      },
+      "repetition": 2,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=100 capacity=64 expected=100 received=100 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.001768 records_per_second=56575.549858\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "100",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.004275268001947552
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 100,
+        "capacity": 2
+      },
+      "repetition": 3,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=100 capacity=2 expected=100 received=100 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.002343 records_per_second=42688.104063\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "100",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.005131544003234012
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 2000,
+        "capacity": 64
+      },
+      "repetition": 3,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=2000 capacity=64 expected=4000 received=4000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.033654 records_per_second=118855.059701\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "2000",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.036716989998240024
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 2000,
+        "capacity": 2
+      },
+      "repetition": 3,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=2000 capacity=2 expected=4000 received=4000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.036014 records_per_second=111069.191747\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "2000",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.03876304300138145
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 100,
+        "capacity": 2
+      },
+      "repetition": 3,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=100 capacity=2 expected=200 received=200 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.003754 records_per_second=53271.211997\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "100",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.006652841002505738
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 2000,
+        "capacity": 2
+      },
+      "repetition": 3,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=2000 capacity=2 expected=2000 received=2000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.019508 records_per_second=102521.038470\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "2000",
+        "2",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.022342467000271427
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 2000,
+        "capacity": 64
+      },
+      "repetition": 3,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=2000 capacity=64 expected=2000 received=2000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.012691 records_per_second=157586.493514\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "2000",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.015405142003146466
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 1,
+        "amount": 100,
+        "capacity": 64
+      },
+      "repetition": 3,
+      "stdout": "family=ipc mode=shm-ring producers=1 records_per_producer=100 capacity=64 expected=100 received=100 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.001766 records_per_second=56614.562398\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "1",
+        "100",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.004546539999864763
+    },
+    {
+      "case": {
+        "family": "ipc",
+        "mode": "shm-ring",
+        "workers": 2,
+        "amount": 100,
+        "capacity": 64
+      },
+      "repetition": 3,
+      "stdout": "family=ipc mode=shm-ring producers=2 records_per_producer=100 capacity=64 expected=200 received=200 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.002776 records_per_second=72051.741797\n",
+      "stderr": "",
+      "returncode": 0,
+      "launch_error": "",
+      "command": [
+        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "ipc",
+        "shm-ring",
+        "2",
+        "100",
+        "64",
+        "--deadline-ms",
+        "5000"
+      ],
+      "wall_seconds": 0.005366474000766175
+    }
+  ]
+}

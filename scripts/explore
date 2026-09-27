@@ -1,0 +1,11 @@
+#!/bin/sh
+# Prefer the repository-local environment, but also support an activated one.
+set -eu
+LAB_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ -x "$LAB_ROOT/.venv/bin/python" ]; then
+    LAB_PYTHON="$LAB_ROOT/.venv/bin/python"
+else
+    LAB_PYTHON=python3
+fi
+cd "$LAB_ROOT"
+exec "$LAB_PYTHON" -m ipc_lab "$@"
