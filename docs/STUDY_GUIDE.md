@@ -5,6 +5,20 @@ measurements as evidence; do not present generated development work as personal
 experience you did not have. Reproduce the demo, inspect the code and make your
 own explanations before discussing the project.
 
+## Concepts covered
+
+- Linux process creation, child reaping, and thread management
+- Race conditions, read-modify-write hazards, and critical sections
+- pthread mutex synchronization
+- System V semaphore creation, operations, timeouts, and removal
+- Anonymous pipes and named FIFOs with atomic record writes
+- System V shared-memory attachment, detachment, and cleanup
+- Multi-producer/single-consumer ownership-transfer protocols
+- Capacity-1 mailboxes and bounded ring buffers with backpressure
+- Failure-aware cleanup without busy waiting
+- Deterministic integrity records and streaming correctness validation
+- Strict C11 compilation, focused functional tests, stress testing, and reproducible benchmark summaries
+
 ## Walk the actual data path
 
 Start at `src/main.c`, then `ipc_run_shm_ring` / `ipc_run_shm_ring_batch` in
@@ -56,8 +70,8 @@ stall tests require exact-child SIGKILL escalation and reaping.
 
 The optimization batches producer reservation/publication, retaining the individual
 consumer and integrity checks. Development measurements showed larger medians for
-capacity 64 / batch 8 and mixed results for capacity 2. Read the final performance
-report and raw JSON before quoting numbers. perf was unavailable under existing
+capacity 64 / batch 8 and mixed results for capacity 2. Read the final [performance
+report](PERFORMANCE_REPORT.md) and raw JSON before quoting numbers. perf was unavailable under existing
 kernel permissions, so no hardware-counter bottleneck claim is supported.
 
 Tests are evidence of selected paths, not a proof of every interprocess ordering.
@@ -67,7 +81,7 @@ histogram, process recovery after arbitrary instruction failure or global scaven
 
 ## Hands-on exercises
 
-Run the five-minute demo. Trace a capacity-2, batch-2, three-record producer by hand,
+Run the [five-minute demo](DEMO.md). Trace a capacity-2, batch-2, three-record producer by hand,
 including its final partial batch and DONE. Read `test_shm_ring_batch.c`, change an
 experiment seed and explain the changed raw schedule, then compare median and spread
 without calling either a significance test. Finally, explain the tradeoff you would

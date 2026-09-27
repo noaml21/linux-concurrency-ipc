@@ -1,4 +1,9 @@
-# V3 engine reliability and measurement design
+# Reliability and measurement design
+
+How the C engine owns, cancels and cleans up its workers and IPC resources, which
+protocol invariants it relies on, what the fault tests cover, and how the V3
+experiment protocol and batched ring are defined. For the overall structure see
+[Architecture](ARCHITECTURE.md); for results see [Benchmarks](BENCHMARKS.md).
 
 ## Ownership and lifecycle
 
@@ -119,11 +124,11 @@ Disk failure/power loss can exceed filesystem guarantees. Python's emergency own
 watchdog marks failure and warns cleanup is not guaranteed; ordinary cancellation
 always first asks the C owner to stop and reap its own children.
 
-The pre-optimization baseline is `docs/data/v3-ring-baseline.json`: this development
+The pre-optimization baseline is [`data/v3-ring-baseline.json`](data/v3-ring-baseline.json): this development
 build was honestly recorded dirty. The local i5-12450H showed wide spread and lower
 throughput with capacity 2 than 64. Per-record semaphore calls are a plausible
 batching target, not an established hardware bottleneck: perf was denied by the
-existing kernel policy (recorded in `v3-perf-probe.json`; no settings changed).
+existing kernel policy (recorded in [`v3-perf-probe.json`](data/v3-perf-probe.json); no settings changed).
 
 ## Batched ring
 

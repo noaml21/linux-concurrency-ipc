@@ -1,9 +1,10 @@
-# Five-minute V3 demo
+# Five-minute demo
 
-Run from the isolated V3 checkout. Setup is outside the five-minute budget:
+A guided tour of the lab, failure handling and a reproducible comparison.
+Run from the repository root. Setup ([details](USAGE.md#setup)) is outside the
+five-minute budget:
 
 ```sh
-cd /home/noam/Projects/linux-concurrency-ipc-v3
 make release
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-lab.txt

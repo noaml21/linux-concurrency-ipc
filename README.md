@@ -1,433 +1,154 @@
-# Linux Concurrency & IPC Benchmark
+# Linux Concurrency & IPC Lab
 
-This project is a C/Linux experimental suite for comparing concurrency and inter-process communication mechanisms under common workloads while validating correctness separately from performance. It targets Linux/POSIX APIs and builds with strict C11 compiler warnings.
+A C11 benchmark engine for Linux synchronization and inter-process communication
+that validates every transferred record, with an interactive terminal lab for
+running, inspecting and comparing experiments.
 
-The synchronization experiments include:
+![Results tab: pipe, System V ring and batched ring, all passing validation](docs/images/lab-results.svg)
 
-- an intentionally unsafe multi-process shared counter;
-- a shared counter protected by a pthread mutex;
-- a shared counter protected by a System V semaphore.
+<sub>Real capture of the lab's Results tab: 2 producers × 2,000 records, three
+repetitions each. The timings are from a small local run and illustrate the UI;
+see the <a href="docs/PERFORMANCE_REPORT.md">performance report</a> for a
+controlled comparison.</sub>
 
-The IPC experiments use multiple producer processes and one consumer process to transport deterministic records through:
+## What it explores
 
-- an anonymous pipe;
-- a named FIFO;
-- a capacity-1 System V shared-memory mailbox;
-- a bounded System V shared-memory ring buffer;
-- an opt-in producer-batched ring with the original ring as its comparison baseline.
+| Area | Implementations |
+|---|---|
+| Synchronization | Intentionally racy shared counter · pthread mutex · System V semaphore |
+| Stream IPC | Anonymous pipe · named FIFO, with multiple writers |
+| Shared-memory IPC | Capacity-1 mailbox · bounded MPSC ring buffer · producer-batched ring |
+| Reliability | Deadlines, cancellation, scoped child reaping, exact resource cleanup, fault injection |
+| Analysis | Textual lab: capacity sweeps, seeded matrices, durable history, run comparison, CSV export |
 
-## Reliable interactive benchmark lab (V3)
+## Highlights
 
-**Linux Concurrency & IPC Lab** adds a Textual terminal interface over the same
-C release executable. Configure experiments, watch real execution progress,
-inspect correctness and throughput, sweep ring capacities, revisit local runs,
-compare compatible experiments, and export summaries. All V1 commands and CSV
-workflows below remain available without installing Textual.
+- **Real Linux primitives in C.** `fork`, pthreads, pipes, FIFOs, System V
+  semaphores and shared memory, built with `-std=c11 -Wall -Wextra -Werror -pedantic`.
+- **Correctness separate from speed.** Every record carries a producer ID,
+  sequence number and integrity value. A streaming validator counts missing,
+  duplicate, corrupted and out-of-range records, and failed runs never enter
+  rate statistics.
+- **A semaphore-based ring buffer in shared memory.** Bounded multi-producer /
+  single-consumer, with backpressure and per-producer completion. A batched
+  variant reserves and publishes N slots per `semtimedop` and runs alongside the
+  original ring rather than replacing it.
+- **Owner-scoped shutdown.** Deadlines and cancellation are checked at blocking
+  points, stalled children escalate from SIGTERM to SIGKILL, and only the exact
+  tracked PIDs, IPC IDs and FIFO paths are reaped and removed.
+- **Tested failure paths.** A separate test-only build injects producer stalls
+  and failures, fork failures and signals, then checks that processes and IPC objects
+  are gone.
+- **Reproducible experiments.** Seeded interleaved repetitions, warmups, and
+  versioned JSON history with exact commands, raw output, engine digest and
+  build provenance.
 
-V3 adds C-owned cancellation/deadlines, tracked-child cleanup, test-only failure
-injection, durable per-attempt history, seeded experiment matrices and a batched
-ring. It preserves V1 output and the V2 interface/default selections. The engine
-now limits workers to 64 and has a default 30-second deadline; the lab uses at most
-32 workers. See the [design and fault matrix](docs/V3_DESIGN.md),
-[five-minute demo](docs/V3_DEMO.md), [performance report](docs/V3_PERFORMANCE.md),
-[study guide](docs/V3_STUDY_GUIDE.md) and [checkpoint](docs/V3_PROGRESS.md).
+## Quick start
 
-### Setup and launch
-
-The lab requires Linux (including WSL2), GCC, Make, and Python **3.10+** with
-venv/pip support. From the repository root:
+Requires Linux (native or WSL2), GCC, Make and Python 3.10+.
 
 ```sh
-make release
+make release                                          # build the optimized C engine
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-lab.txt
-./scripts/explore --check
-./scripts/explore
+./scripts/explore                                     # open the interactive lab
 ```
 
-The launcher prefers `.venv/bin/python`, otherwise it uses `python3` from PATH.
-It prints setup guidance when Textual or the release binary is missing. It does
-not install dependencies or build binaries automatically. An interactive terminal
-is required; 100×32 or larger is comfortable, 80×24 is supported, and a 60×20
-keyboard smoke test covers smaller terminals. Scroll panels to reveal additional
-controls and details; tables also scroll horizontally.
+Press **Ctrl+R** to run the default experiment. `./scripts/explore --check`
+verifies the setup without opening the UI.
 
-### Interactive workflow
+The engine also runs on its own, without the lab. Each run prints one
+`key=value` line:
 
-1. **Configure:** choose IPC or synchronization, then select mechanisms with Space.
-   Set workers/producers, items **per worker/producer**, repetitions, and ring
-   capacity. The default runs the four IPC mechanisms with 2 producers × 2,000
-   records, three times each. Validation explains invalid or excessive workloads.
-2. **Sweep:** enable “Sweep shm-ring capacity” to select the ring and replace its
-   single capacity with `1, 2, 8, 64, 256, 1024`. You can edit the comma-separated
-   capacities (at most eight distinct values). Other selected modes run once per
-   repetition at the same workload, without the capacity dimension.
-3. **Live:** Run or Ctrl+R starts sequential background execution. The app shows
-   the current mechanism/repetition, elapsed wall time, actual completed
-   executions, failures and the last correctness result. Progress advances only
-   when the engine returns; it is not a record-level estimate.
-4. **Results:** select a row to see validation counters, expected and observed
-   counts, accepted-sample sparkline, and the original engine output. The table
-   shows median/min/max throughput and accepted/planned sample count (`n`).
-   Export summary CSV writes a separate lab CSV under `results/lab/exports/`.
-5. **History:** select a saved run and Open it. To compare, Pin baseline, select
-   a different run, then Compare. Both must be complete without failures, with
-   identical configuration, recorded system metadata, and engine digest.
+```console
+$ ./build/linux-concurrency-ipc-release ipc shm-ring 4 20000 8
+family=ipc mode=shm-ring producers=4 records_per_producer=20000 capacity=8 expected=80000 received=80000 missing=0 duplicates=0 corrupted=0 out_of_range=0 validation_pass=1 elapsed_seconds=0.685255 records_per_second=116744.877757
+```
 
-Tab/Shift+Tab move focus, arrows move through tables and selections, and Space
-changes a checkbox or selected mechanism. Ctrl+X requests cancellation;
-Ctrl+Q (or Ctrl+C) requests a safe quit. The default command palette is also
-available with Ctrl+P.
-
-**Cancel asks the active C owner to stop, reap children and remove its resources.**
-The engine polls cancellation/deadlines at blocking boundaries and escalates stalled
-owned children from SIGTERM to SIGKILL after 200 ms. Quit drains and saves history.
-Use trailing `--deadline-ms 1..120000` in the CLI, or Deadline ms in Configure.
-Default deadline is 30 seconds; very short cases may finish before cancellation.
-This is cooperative bounded shutdown under normal Linux scheduling, not a real-time
-promise. Uninterruptible kernel sleep, owner SIGKILL and machine failure cannot
-have guaranteed cleanup. The UI has an emergency watchdog, which reports failure
-and explicitly cannot promise cleanup of an unresponsive owner.
-
-### Interpretation and limits
-
-- IPC rates are records/sec. Correctness requires every expected record exactly
-  once, no corruption, and no out-of-range records. Counter details and CSV
-  counters are **sums across parsed repetitions**, including incorrect ones.
-- Synchronized counters require observed = expected and zero lost updates.
-  `process-unsafe` is always labeled **RACY**, even if no loss happens in a run.
-  Its reported rate is **attempted operations/sec**, not useful synchronized
-  throughput; it is excluded from the common relative-performance bar scale.
-- Invalid output and nonzero exits are errors. Parsed correctness failures remain
-  visible but are excluded from rate statistics. A cancelled experiment retains
-  completed samples, and unexecuted cases display NOT RUN. A failing case can
-  still have accepted samples; always inspect its state and sample count.
-- Median bars are relative to accepted medians in that run. Sparklines show
-  accepted repetitions in execution order. Min/max describe spread, not a
-  confidence interval. Tiny demo workloads emphasize startup/scheduling overhead.
-- Runs remain sequential. Configure optional worker/item matrices, 0..3 warmups,
-  seed and randomized/interleaved repetition blocks. The headless experiment CLI
-  defaults to interleaving; the UI preserves ordered V2 defaults. Warmups remain
-  in raw history but never enter performance statistics. CPU affinity is recorded,
-  not changed; frequency, system load and scheduling remain uncontrolled.
-- Engine elapsed time is the worker-lifecycle interval, including worker creation,
-  record generation, transport, online validation and reaping. Resource allocation,
-  final summary and destruction are outside that interval. Python also records
-  end-to-end process wall time. Neither is steady-state throughput or record latency.
-- UI limits: 1–32 workers/producers, 1–100,000 items each, at most 200,000 items
-  per execution, 1–15 repetitions, capacities 1–32,767, at most 90 executions and
-  5,000,000 configured items including warmups per experiment. The lab stops scheduling
-  after 600 seconds; the current execution still gets its deadline and cleanup grace.
-
-### Architecture and stored data
+## How it works
 
 ```text
-scripts/explore → ipc_lab/__main__.py → app.py + lab.tcss
-                                         ↓
-models.py → runner.py → existing C release CLI → parsing.py
-                 ↓                                  ↓
-             records.py ←────────────────────── analysis.py
-                 ↓                                  ↓
-             storage.py                       presentation.py
-        results/lab/*.json                    Textual dashboard
-        results/lab/exports/*.csv
+   Textual UI  ·  headless experiment CLI            ipc_lab/  (Python)
+                    │
+                    ▼
+   Orchestration: validate config → spawn engine (no shell)
+   → parse output → statistics → JSON history, CSV
+                    │
+                    ▼
+   C benchmark engine: workers · timing · validation · cleanup    src/  (C11)
+                    │
+                    ▼
+   Linux / POSIX: fork, pthreads, pipe, FIFO, System V sem + shm
 ```
 
-`models.py` validates immutable configurations and expands cases, allowing future
-sweep dimensions without adding benchmark logic to the UI. `runner.py` constructs
-explicit argument lists and uses `asyncio.create_subprocess_exec` without a shell.
-Only the C engine measures time, performs operations, and validates records.
-`parsing.py` checks its complete key=value contract and workload metadata;
-`analysis.py` computes descriptive statistics. The UI renders results and handles
-interaction; it does not implement IPC or synchronization algorithms.
+The C engine owns the benchmark semantics: it creates the workers, times the run
+with `CLOCK_MONOTONIC`, validates every record and cleans up its own resources.
+Python schedules runs, parses the engine's output and stores the results; the UI
+contains no IPC or synchronization logic. See [Architecture](docs/ARCHITECTURE.md).
 
-Run JSON uses **schema 2**, with full configuration/schedule seed, run state,
-raw stdout/stderr, exact command, wall time, correctness, engine digest, source
-commit/dirty state, compiler/flags, build commit/dirty state and OS/CPU/affinity.
-A matching binary digest is required before trusting its build manifest. Unknown
-build metadata is labeled unavailable. Schema-1 V2 history is migrated on read
-with ordered scheduling; old files are not automatically rewritten. A batch case
-also records its effective batch size. Results and schedule are validated on load.
+## Example experiments
 
-History is saved before starting, after every completed attempt and at completion.
-Writes fsync a temporary sibling, atomically replace the destination and fsync the
-directory. An interrupted run reopens as INCOMPLETE with prior completed samples;
-the active unfinished case is not a measurement. Save failures are shown and
-results retained in memory for retry. `.venv/` and `results/lab/` are Git-ignored.
+| Mode | What it shows | Engine command |
+|---|---|---|
+| `process-unsafe` | Race baseline: lost updates are a valid outcome | `sync process-unsafe 4 100000` |
+| `threads-mutex` | pthread mutex around a shared counter | `sync threads-mutex 4 100000` |
+| `process-sem` | System V semaphore across processes | `sync process-sem 4 100000` |
+| `pipe` / `fifo` | Multiple writers with atomic `PIPE_BUF` records | `ipc pipe 4 20000` |
+| `shm-mailbox` | Capacity-1 shared-memory handoff | `ipc shm-mailbox 4 20000` |
+| `shm-ring` | Bounded ring: EMPTY / FULL / producer-mutex semaphores | `ipc shm-ring 4 20000 8` |
+| `shm-ring-batch` | Ring with batched producer reservation | `ipc shm-ring-batch 4 20000 64 8` |
 
-To reproduce a saved experiment, use its configuration in Configure and compare
-the recorded engine digest and environment metadata. Preserve the JSON alongside
-its exported CSV: the JSON contains the raw evidence and system metadata. Existing
-`results/benchmark_raw.csv`, `results/benchmark_summary.csv`, and
-`scripts/benchmark.py` are independent of the lab and retain their V1 format.
+In the committed 80-execution [ring study](docs/PERFORMANCE_REPORT.md), batching
+at capacity 64 raised median throughput 1.83–3.08× over the baseline ring across
+four workloads. At capacity 2 the results were mixed (0.85–1.04×).
 
-### Lab tests and demo
+## Documentation
 
-```sh
-make test
-make release
-.venv/bin/python -m unittest discover -s tests/lab -v
-python3 scripts/stress.py
-```
+| Guide | Covers |
+|---|---|
+| [Usage](docs/USAGE.md) | Setup, UI workflow and keys, headless matrices, C CLI |
+| [Demo](docs/DEMO.md) | Five-minute tour including failure injection |
+| [Architecture](docs/ARCHITECTURE.md) | Engine layout, record validation, ring protocol, lab and history design |
+| [Reliability](docs/RELIABILITY.md) | Lifecycle, cancellation, invariants, fault matrix, limits |
+| [Benchmarks](docs/BENCHMARKS.md) | What is timed, how to read results, original V1 dataset |
+| [Performance report](docs/PERFORMANCE_REPORT.md) | Baseline vs. batched ring, with raw data |
+| [Testing](docs/TESTING.md) | Test suites, stress, sanitizers, CI |
+| [Study guide](docs/STUDY_GUIDE.md) | Questions to answer from the code |
 
-The Python suite uses standard-library unittest and Textual Pilot. It includes
-parser/validation/statistics/command/history tests, real tiny CLI executions of
-all eight mechanisms, and UI workflows for IPC, sync, capacity sweep, cancellation,
-history, comparison, export, storage errors, and smaller terminals. Build the
-release binary first; real integration tests are required, not silently skipped.
-See [the V3 demo](docs/V3_DEMO.md). The [V2 demo](docs/V2_DEMO.md),
-[plan](docs/V2_PLAN.md) and [build log](docs/V2_BUILD_LOG.md) retain their historical context.
+Full index: [docs/](docs/README.md).
 
-### Reproducible matrix commands
+## Verification
 
-```sh
-# Short demo, same C engine and history as the UI; no Textual import required
-.venv/bin/python -m ipc_lab.experiment --modes shm-ring,shm-ring-batch --workers 1,2 --amounts 100,2000 --capacities 2,64 --repetitions 3 --warmups 1 --batch-size 8 --seed 2026
-# Longer bounded ring study; defaults stay within 90 executions
-.venv/bin/python -m ipc_lab.experiment --preset research --perf
-```
+| Check | Command |
+|---|---|
+| 13 C unit-test programs | `make test` |
+| Fault injection and exact cleanup | `make fault-test` |
+| ASan + UBSan (safe modes) | `make sanitizer-test` |
+| 11 large correctness cases | `python3 scripts/stress.py` |
+| 42 Python tests, real engine and Textual UI | `.venv/bin/python -m unittest discover -s tests/lab` |
 
-JSON, summary CSV and a Markdown distribution report go under `results/lab/`.
-The optional separate perf probe records actual output or unavailability and never
-changes kernel settings. Research presets remain limited laptop experiments, not
-publication-quality evidence; explicit arguments exceeding bounds are rejected.
+[GitHub Actions](.github/workflows/linux.yml) runs all of these with GCC and
+Clang on Ubuntu 24.04. CI checks correctness only and has no performance
+thresholds. Details: [Testing](docs/TESTING.md).
 
-## Key technical ideas
+## Scope and limits
 
-Each producer emits records identified by a producer ID and sequence number. `record_make()` derives a deterministic integrity value from those fields, allowing the consumer to detect data corruption without storing a reference copy of every record.
+- Linux only. Numbers are descriptive measurements on one machine. CPU frequency,
+  load and scheduling are not controlled, and per-record latency is not measured.
+- Cancellation is cooperative and bounded under normal scheduling. SIGKILL of the
+  owner or machine failure cannot guarantee FIFO or System V resource cleanup.
 
-The streaming validator tracks expected, received, and unique records and reports missing, duplicate, corrupted, and out-of-range records. It uses one byte of tracking state per expected record. IPC infrastructure success and record validation are deliberately separate: a transport can complete successfully while still reporting `validation_pass=0` if its data is incorrect.
+See [Benchmarks](docs/BENCHMARKS.md) and [Reliability](docs/RELIABILITY.md) for
+the full caveats.
 
-The common I/O layer handles partial reads and writes, retries operations interrupted by `EINTR`, and distinguishes a complete object, clean EOF before an object, and a partial-object/error condition. Records sent through pipes and FIFOs are compile-time checked to fit within `PIPE_BUF`, preserving atomic writes between producers.
-
-Elapsed time is measured with `clock_gettime(CLOCK_MONOTONIC)`. Process and System V IPC paths explicitly create, close, detach, reap, remove, and free their resources on success and failure paths. Semaphore-based producer/consumer modes block in the kernel rather than busy-waiting.
-
-The `process-unsafe` synchronization mode is intentionally different: each child performs an unsynchronized read-modify-write on one shared counter. Lost updates are a valid outcome and make this mode a race-condition baseline, not a correct synchronization strategy.
-
-## Bounded shared-memory ring buffer
-
-The main IPC component is a bounded, multi-producer, single-consumer ring in a System V shared-memory segment. The shared layout contains wrapped `head` and `tail` indices followed by a capacity-sized array of message slots.
-
-Messages have two types:
-
-- `RING_RECORD` carries one `record_t`;
-- `RING_DONE` carries the ID of a producer that has completed.
-
-The semaphore set contains exactly three semaphores:
-
-- `EMPTY`: number of slots available to producers;
-- `FULL`: number of messages available to the consumer;
-- `PRODUCER_MUTEX`: serializes producer writes and updates to `tail`.
+## Repository layout
 
 ```text
-Producer:
-  wait(EMPTY)
-  wait(PRODUCER_MUTEX) -> slots[tail] = message -> tail = next(tail)
-  post(PRODUCER_MUTEX)
-  post(FULL)
-
-Shared memory:
-  +--------+--------+-----------------------------------+
-  |  head  |  tail  | slots[0] ... slots[capacity - 1] |
-  +--------+--------+-----------------------------------+
-
-Consumer:
-  wait(FULL) -> message = slots[head] -> head = next(head)
-  post(EMPTY)
+src/        C engine: main.c, common/ (records, validator, I/O, timing, runtime), sync/, ipc/
+include/    C headers
+tests/      C unit tests · lab/ Python and UI tests · reliability/ fault-injection tests
+ipc_lab/    Python orchestration, history storage and Textual UI
+scripts/    explore launcher, stress and V1 benchmark runners, build provenance
+docs/       guides, design notes, performance report and its data
+results/    original V1 benchmark dataset (lab output goes to ignored results/lab/)
 ```
-
-Producers wait for `EMPTY` before taking `PRODUCER_MUTEX`, so they never hold the mutex while blocked for capacity. Only producers need the mutex: several producers share `tail`, while the single consumer exclusively updates `head`. Both indices wrap to zero at the configured capacity instead of growing indefinitely.
-
-`EMPTY` and `FULL` provide bounded backpressure and transfer ownership of individual slots between producers and the consumer. A capacity of 1 reduces the protocol to mailbox-like behavior. Each producer sends one DONE message after its records; the consumer terminates only after receiving one valid, non-duplicate DONE from every producer.
-
-The consumer waits for `FULL` with `semtimedop()` and a 100 ms timeout. On a timeout it checks child status with non-blocking `waitpid()`. If a producer failed, the semaphore set is removed before remaining children are reaped, waking producers blocked in semaphore operations instead of allowing an indefinite wait.
-
-## Build and test
-
-Requirements are a Linux environment with GCC, Make, and Python 3. The C targets use:
-
-```text
--std=c11 -Wall -Wextra -Werror -pedantic
-```
-
-Available build targets:
-
-```sh
-make test     # Build and run all functional tests
-make app      # Build the non-optimized development CLI
-make release  # Build the benchmark CLI with -O2
-make clean    # Remove the complete build/ directory
-```
-
-Additional V3 verification:
-
-```sh
-make fault-test      # separate IPC_TESTING binary; controlled faults and cleanup
-make sanitizer-test  # ASan+UBSan on safe C modes; rebuilds test binaries
-```
-
-GitHub Actions runs strict GCC/Clang builds, bounded fault checks, stress tests,
-ASan/UBSan and Python/core/integration/UI tests. Intentionally racy process-unsafe
-is excluded from sanitizer correctness tests. Sanitizers cannot prove interprocess
-ordering, fairness or complete race freedom; deterministic faults test selected
-failure paths. CI contains no noisy performance thresholds. Non-PIE sanitizer
-executables avoid address-space shadow mapping collisions; release builds retain
-the compiler's default executable model.
-
-The optimized executable is:
-
-```sh
-./build/linux-concurrency-ipc-release
-```
-
-The release build uses `-O2` and `-pthread` without machine-specific optimization flags.
-
-## CLI examples
-
-Synchronization experiments:
-
-```sh
-./build/linux-concurrency-ipc sync process-unsafe 4 100000
-./build/linux-concurrency-ipc sync threads-mutex 4 100000
-./build/linux-concurrency-ipc sync process-sem 4 100000
-```
-
-IPC experiments:
-
-```sh
-./build/linux-concurrency-ipc ipc pipe 4 20000
-./build/linux-concurrency-ipc ipc fifo 4 20000
-./build/linux-concurrency-ipc ipc shm-mailbox 4 20000
-./build/linux-concurrency-ipc ipc shm-ring 4 20000 8
-./build/linux-concurrency-ipc ipc shm-ring-batch 4 20000 64 8 --deadline-ms 5000
-```
-
-Successful commands print exactly one machine-readable line of whitespace-separated `key=value` fields. Synchronization output includes expected and observed operations, lost updates, elapsed time, and operations per second. IPC output includes validation counters, elapsed time, and records per second; ring output also includes capacity; batch mode additionally includes batch_size.
-A validation failure returns nonzero. Batch size must not exceed capacity in the
-C CLI. In the lab, Max batch is clamped to each case capacity and recorded explicitly.
-
-## Correctness and stress testing
-
-`make test` builds and runs focused assertion-based tests for the record, validator, I/O, timing, synchronization, and IPC layers.
-
-The larger correctness suite runs with the optimized executable:
-
-```sh
-python3 scripts/stress.py
-```
-
-It executes each case once, sequentially, with a 120-second timeout per case. It excludes `process-unsafe` because that mode is intentionally racy. The synchronization workloads are:
-
-- `threads-mutex`: 8 workers × 250,000 operations;
-- `process-sem`: 8 workers × 25,000 operations.
-
-Every IPC stress case uses 8 producers × 50,000 records, or 400,000 records total. Pipe, FIFO, and shared-memory mailbox are checked once each. The ring is checked at capacities 1, 2, 8, 64, 256, and 1024.
-
-The runner verifies the returned family, mode, and workload metadata. Synchronized counters must be exact with zero lost updates. Every IPC case must receive all expected records, pass validation, and report zero missing, duplicate, corrupted, and out-of-range records. It stops immediately on a non-zero exit, malformed output, timeout, or correctness failure; it does not collect performance data.
-
-## Original V1 benchmark methodology (preserved)
-
-The included dataset was generated with:
-
-```sh
-make release
-python3 scripts/benchmark.py --repetitions 7
-```
-
-The benchmark runner uses the `-O2` release binary and executes cases sequentially. Synchronization cases use 4 workers × 100,000 operations. IPC cases use 4 producers × 20,000 records, and the ring is measured at capacities 1, 8, 64, 256, and 1024.
-
-Each case is executed seven times for the included dataset. The runner parses the CLI's machine-readable output and applies correctness checks before accepting a measurement. It stores every accepted execution in [`results/benchmark_raw.csv`](results/benchmark_raw.csv) and calculates median elapsed time and throughput, plus minimum and maximum rate, in [`results/benchmark_summary.csv`](results/benchmark_summary.csv). The median is the primary statistic reported below.
-
-These results were collected in Ubuntu running under WSL2. They describe this implementation and environment; they should not be generalized to all Linux systems or hardware.
-
-## Original V1 benchmark results (WSL2, preserved)
-
-### Synchronization
-
-| Mode | Median operations/sec | Correctness behavior |
-|---|---:|---|
-| `process-unsafe` | 939,271,407 | Intentionally racy; lost updates are nondeterministic |
-| `threads-mutex` | 22,184,414 | Exact final count required |
-| `process-sem` | 67,515 | Exact final count required |
-
-The unsafe mode's high reported rate is not useful synchronized throughput. Its increments can overwrite one another, and throughput is calculated from the configured operation count. The included dataset has a median of zero lost updates, but that does not remove the data race or guarantee the same outcome in another run.
-
-### Inter-process communication
-
-| Mode | Capacity | Median records/sec |
-|---|---:|---:|
-| `pipe` | — | 230,411 |
-| `fifo` | — | 228,811 |
-| `shm-mailbox` | 1 | 29,179 |
-| `shm-ring` | 1 | 21,388 |
-| `shm-ring` | 8 | 43,972 |
-| `shm-ring` | 64 | 36,351 |
-| `shm-ring` | 256 | 34,498 |
-| `shm-ring` | 1024 | 33,059 |
-
-Values are rounded to the nearest whole operation or record per second. Exact values and per-run variation remain available in the CSV files.
-
-## Original V1 interpretation
-
-The pthread mutex counter was dramatically faster than the System V semaphore counter in this experiment. This is not a comparison of interchangeable primitives alone: the pthread case uses threads in one process, while the System V semaphore case synchronizes separate processes and invokes a different kernel IPC mechanism for every increment. The `process-sem` implementation also uses `SEM_UNDO`, so its measured cost includes the associated kernel bookkeeping.
-
-Pipe and FIFO medians are close. Both also show substantial variation across the seven raw runs, so this dataset does not establish either transport as definitively faster.
-
-The shared-memory results should not be summarized as “shared memory is slower than pipes.” The mailbox and ring perform System V semaphore operations around every transfer, so synchronization and ownership-transfer overhead are central parts of what these implementations measure.
-
-Ring capacity 8 substantially outperformed capacity 1 for this workload, showing that buffering reduced producer backpressure. Increasing capacity beyond 8 did not improve throughput further in this dataset. That is an observation about this workload and environment, not evidence that capacity 8 is universally optimal.
-
-## Project structure
-
-```text
-.
-├── Makefile
-├── README.md
-├── include/
-│   ├── io.h
-│   ├── ipc.h
-│   ├── record.h
-│   ├── sync.h
-│   ├── timing.h
-│   └── validator.h
-├── src/
-│   ├── main.c
-│   ├── common/
-│   │   ├── io.c
-│   │   ├── record.c
-│   │   ├── timing.c
-│   │   └── validator.c
-│   ├── sync/
-│   │   ├── process_unsafe.c
-│   │   ├── processes_sem.c
-│   │   └── threads_mutex.c
-│   └── ipc/
-│       ├── fifo.c
-│       ├── pipe.c
-│       ├── shm_mailbox.c
-│       └── shm_ring.c
-├── tests/
-│   └── test_*.c
-├── scripts/
-│   ├── benchmark.py
-│   └── stress.py
-└── results/
-    ├── benchmark_raw.csv
-    └── benchmark_summary.csv
-```
-
-Generated binaries are placed under `build/` and are intentionally omitted from the tree above.
-
-## What this project demonstrates
-
-- Linux process creation, child reaping, and thread management
-- Race conditions, read-modify-write hazards, and critical sections
-- pthread mutex synchronization
-- System V semaphore creation, operations, timeouts, and removal
-- Anonymous pipes and named FIFOs with atomic record writes
-- System V shared-memory attachment, detachment, and cleanup
-- Multi-producer/single-consumer ownership-transfer protocols
-- Capacity-1 mailboxes and bounded ring buffers with backpressure
-- Failure-aware cleanup without busy waiting
-- Deterministic integrity records and streaming correctness validation
-- Strict C11 compilation, focused functional tests, stress testing, and reproducible benchmark summaries

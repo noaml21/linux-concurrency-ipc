@@ -1,4 +1,10 @@
-# V3 reproducible performance report
+# Performance report: producer-batched ring
+
+A reproducible V3 comparison of the baseline System V ring (`shm-ring`) with the
+producer-batched ring (`shm-ring-batch`). The protocol is described in
+[Architecture](ARCHITECTURE.md#producer-batched-ring) and
+[Reliability](RELIABILITY.md#batched-ring); general methodology is in
+[Benchmarks](BENCHMARKS.md).
 
 ## Hypothesis
 
@@ -39,7 +45,7 @@ make release
 .venv/bin/python -m ipc_lab.experiment --modes shm-ring,shm-ring-batch --workers 1,2 --amounts 2000,10000 --capacities 2,64 --repetitions 4 --warmups 1 --batch-size 8 --seed 2026 --perf
 ```
 
-Use the README setup first if `.venv` is absent. Scheduling and configuration are
+Use the [setup steps](USAGE.md#setup) first if `.venv` is absent. Scheduling and configuration are
 reproducible; timings and generated run IDs are not expected to be identical.
 The [raw schema-2 JSON](data/v3-comparison.json) retains every attempt, exact
 commands, raw C fields, Python end-to-end wall times and provenance. The
