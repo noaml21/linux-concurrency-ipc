@@ -154,3 +154,7 @@ scripts/    explore launcher, stress and V1 benchmark runners, build provenance
 docs/       guides, design notes, performance report and its data
 results/    original V1 benchmark dataset (lab output goes to ignored results/lab/)
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 Noam Levi
