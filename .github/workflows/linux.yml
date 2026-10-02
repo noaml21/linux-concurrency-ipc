@@ -1,9 +1,10 @@
 name: Linux correctness
 on:
   push:
-    branches: [v3/reliable-ipc-lab]
+    branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
