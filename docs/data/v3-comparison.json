@@ -65,7 +65,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -91,7 +91,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -118,7 +118,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -144,7 +144,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -171,7 +171,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -198,7 +198,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -224,7 +224,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -250,7 +250,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -276,7 +276,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -303,7 +303,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -330,7 +330,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -356,7 +356,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -383,7 +383,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -410,7 +410,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -437,7 +437,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -463,7 +463,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -489,7 +489,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -516,7 +516,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -543,7 +543,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -570,7 +570,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -596,7 +596,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -622,7 +622,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -648,7 +648,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -674,7 +674,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -701,7 +701,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -728,7 +728,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -755,7 +755,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -781,7 +781,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -808,7 +808,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -834,7 +834,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -861,7 +861,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -887,7 +887,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -913,7 +913,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -939,7 +939,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -965,7 +965,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -991,7 +991,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1018,7 +1018,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1044,7 +1044,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1071,7 +1071,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -1097,7 +1097,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1124,7 +1124,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1151,7 +1151,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1177,7 +1177,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1204,7 +1204,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -1230,7 +1230,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1257,7 +1257,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1284,7 +1284,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -1310,7 +1310,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1337,7 +1337,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1363,7 +1363,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1390,7 +1390,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1417,7 +1417,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1444,7 +1444,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1471,7 +1471,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -1497,7 +1497,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1523,7 +1523,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1549,7 +1549,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -1575,7 +1575,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -1601,7 +1601,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1628,7 +1628,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -1654,7 +1654,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1681,7 +1681,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1708,7 +1708,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1734,7 +1734,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1761,7 +1761,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1788,7 +1788,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1814,7 +1814,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1840,7 +1840,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -1867,7 +1867,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -1893,7 +1893,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1919,7 +1919,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1946,7 +1946,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "1",
@@ -1972,7 +1972,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -1999,7 +1999,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -2025,7 +2025,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -2052,7 +2052,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",
@@ -2079,7 +2079,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -2105,7 +2105,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "1",
@@ -2132,7 +2132,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring",
         "2",
@@ -2158,7 +2158,7 @@
       "returncode": 0,
       "launch_error": "",
       "command": [
-        "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+        "./build/linux-concurrency-ipc-release",
         "ipc",
         "shm-ring-batch",
         "2",

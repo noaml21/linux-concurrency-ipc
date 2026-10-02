@@ -7,7 +7,7 @@
     "-e",
     "task-clock,cycles,instructions,context-switches",
     "--",
-    "/home/noam/Projects/linux-concurrency-ipc-v3/build/linux-concurrency-ipc-release",
+    "./build/linux-concurrency-ipc-release",
     "ipc",
     "shm-ring",
     "1",

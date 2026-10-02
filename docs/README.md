@@ -23,11 +23,15 @@
 | [`v3-ring-baseline.json`](data/v3-ring-baseline.json) | Pre-optimization development baseline (dirty build, not used for speedups) |
 | [`v3-perf-probe.json`](data/v3-perf-probe.json) | `perf stat` probe from the development baseline (events unavailable) |
 
+Recorded commands show the engine as `./build/...` relative to the repository
+root; the machine-specific checkout prefix was removed after recording. No
+measurement, output or digest field was changed.
+
 The original V1 dataset lives in [`../results/`](../results/).
 
 ## Project history
 
 The project grew in three stages: a C benchmark engine (V1), the interactive
 Textual lab (V2), and reliability, reproducibility and the batched ring (V3).
-Plans, build logs and verification checkpoints from that work are kept for
-provenance in [`history/`](history/).
+The V2 plan, build log and walkthrough are kept for provenance in
+[`history/`](history/).
