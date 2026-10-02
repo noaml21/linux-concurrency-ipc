@@ -87,7 +87,7 @@ not silently skipped.
 ## Continuous integration
 
 [`.github/workflows/linux.yml`](../.github/workflows/linux.yml) runs on Ubuntu
-24.04 for pushes to `v3/reliable-ipc-lab` and pull requests to `main`:
+24.04 for pushes and pull requests to `main`, and can be started manually:
 
 - **compilers** (GCC and Clang): strict build and C tests, fault matrix, CLI
   smoke checks, stress correctness;

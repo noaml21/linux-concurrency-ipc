@@ -37,8 +37,8 @@ used for the final speedup calculation below.
   failed or cancelled attempts. No local tests/builds were run concurrently.
   Other machine activity, CPU frequency and thermal state were not controlled.
 
-From a clean checkout of the measured commit (or the final V3 branch, whose later
-report-only commit does not change the engine):
+From a clean checkout of the measured commit (or `main`, whose later commits do not
+change the engine sources or Makefile):
 
 ```sh
 make release
