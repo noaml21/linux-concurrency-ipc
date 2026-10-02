@@ -1,5 +1,7 @@
 # Linux Concurrency & IPC Lab
 
+[![Linux correctness](https://github.com/noaml21/linux-concurrency-ipc/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/noaml21/linux-concurrency-ipc/actions/workflows/linux.yml?query=branch%3Amain)
+
 A C11 benchmark engine for Linux synchronization and inter-process communication
 that validates every transferred record, with an interactive terminal lab for
 running, inspecting and comparing experiments.
