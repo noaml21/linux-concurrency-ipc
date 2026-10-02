@@ -107,3 +107,14 @@ make fault-test
 make sanitizer-test
 git diff --check
 ```
+
+## Contributing changes
+
+- Run the targeted tests for the area you changed, then `make test`; use the
+  full sequence above before proposing a change to the engine or the lab.
+- Add tests for new non-trivial logic. Do not weaken, skip or delete existing
+  tests to make a change pass.
+- The C engine remains the only source of measurements; the lab invokes it and
+  must not reimplement or adjust its results.
+- Do not alter recorded measurements in `results/` or `docs/data/`; replace
+  them only with a new, documented measurement run.
