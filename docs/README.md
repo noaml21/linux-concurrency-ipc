@@ -29,5 +29,5 @@ The original V1 dataset lives in [`../results/`](../results/).
 
 The project grew in three stages: a C benchmark engine (V1), the interactive
 Textual lab (V2), and reliability, reproducibility and the batched ring (V3).
-Plans, build logs and verification checkpoints from that work are kept for
-provenance in [`history/`](history/).
+The V2 plan, build log and walkthrough are kept for provenance in
+[`history/`](history/).

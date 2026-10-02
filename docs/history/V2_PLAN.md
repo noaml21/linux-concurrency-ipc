@@ -5,7 +5,6 @@
 The existing C CLI is the sole measurement engine. Preserve `src/`, `include/`,
 the C tests, V1 scripts, and recorded CSVs. Add a Python package `ipc_lab/` with
 Textual as its only direct runtime dependency, and standard-library unit tests.
-All work stays on `v2/interactive-benchmark-lab`.
 
 ## Sequential milestones
 
@@ -23,12 +22,10 @@ All work stays on `v2/interactive-benchmark-lab`.
    tabs; validation, capacity sweep, comparison and export; `scripts/explore`.
    Verify with Textual Pilot including real executions and smaller terminals.
 4. **Release verification:** setup/architecture/methodology/demo documentation,
-   final review and full gates; clean tree, branch-only push, draft PR if the
-   GitHub CLI is authenticated. Never merge.
+   final review and the full verification gates.
 
 Every milestone must pass targeted tests, `make test`, CLI checks, and a scope
-review before its build-log entry and commit. Do not start the next milestone
-until these checks pass.
+review before it is recorded in the build log and committed.
 
 ## Design decisions
 
@@ -56,5 +53,5 @@ until these checks pass.
 Run `make clean`, `make test`, `make release`, `python3 scripts/stress.py`, all
 Python tests, real experiments through the TUI, and the unchanged V1 benchmark
 script with output isolated under `results/lab/`. Review diffs and ignored
-artifacts. Commit only green work, then push the named branch and create a draft
-PR with verification, limitations, and reproducible manual demo steps.
+artifacts, and document verification results, limitations, and reproducible
+manual demo steps.
